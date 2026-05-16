@@ -511,14 +511,17 @@ function StepBlueprint({
   loading,
   loadingMessage,
   progress,
+  onSave,
+  saving,
 }: {
   data: OnboardingData;
   blueprint: Blueprint | null;
   loading: boolean;
   loadingMessage: string;
   progress: number;
+  onSave: () => void;
+  saving: boolean;
 }) {
-  const router = useRouter();
 
   if (loading) {
     return (
@@ -681,12 +684,22 @@ function StepBlueprint({
       <div className="pt-4">
         <button
           type="button"
-          onClick={() => router.push("/dashboard")}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] px-6 py-3.5 text-sm font-semibold text-[#0A0A0F] transition-opacity hover:opacity-90"
+          disabled={saving}
+          onClick={onSave}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] px-6 py-3.5 text-sm font-semibold text-[#0A0A0F] transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          <LayoutDashboard className="h-4 w-4" />
-          Go to Dashboard
-          <ArrowRight className="h-4 w-4" />
+          {saving ? (
+            <>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0A0A0F]/30 border-t-[#0A0A0F]" />
+              Saving your blueprint...
+            </>
+          ) : (
+            <>
+              <LayoutDashboard className="h-4 w-4" />
+              Go to Dashboard
+              <ArrowRight className="h-4 w-4" />
+            </>
+          )}
         </button>
       </div>
     </div>
@@ -764,10 +777,12 @@ export default function OnboardingPage() {
     bottleneck: "",
   });
 
+  const router = useRouter();
   const [blueprint, setBlueprint] = useState<Blueprint | null>(null);
   const [blueprintLoading, setBlueprintLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
   const [progress, setProgress] = useState(0);
+  const [saving, setSaving] = useState(false);
 
   // Pre-fill name from auth
   useEffect(() => {
@@ -839,6 +854,43 @@ export default function OnboardingPage() {
       setBlueprintLoading(false);
     }
   }, [data]);
+
+  const saveOnboarding = useCallback(async () => {
+    setSaving(true);
+    try {
+      const responses = [
+        { question_key: "fullName", answer: data.fullName },
+        { question_key: "role", answer: data.role },
+        { question_key: "experienceLevel", answer: data.experienceLevel },
+        { question_key: "industry", answer: data.industry },
+        { question_key: "businessDescription", answer: data.businessDescription },
+        { question_key: "revenueStage", answer: data.revenueStage },
+        { question_key: "goals", answer: data.goals },
+        { question_key: "bottleneck", answer: data.bottleneck },
+      ];
+
+      await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          responses,
+          blueprint,
+          fullName: data.fullName,
+          role: data.role,
+          experienceLevel: data.experienceLevel,
+          industry: data.industry,
+          revenueStage: data.revenueStage,
+          goals: data.goals,
+          bottleneck: data.bottleneck,
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to save onboarding:", error);
+    } finally {
+      setSaving(false);
+      router.push("/dashboard");
+    }
+  }, [data, blueprint, router]);
 
   const goNext = () => {
     if (step < 4) {
@@ -955,6 +1007,8 @@ export default function OnboardingPage() {
                 loading={blueprintLoading}
                 loadingMessage={loadingMessage}
                 progress={progress}
+                onSave={saveOnboarding}
+                saving={saving}
               />
             )}
           </motion.div>
