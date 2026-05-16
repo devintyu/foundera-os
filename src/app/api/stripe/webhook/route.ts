@@ -3,10 +3,12 @@ import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
 import type Stripe from "stripe";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -54,7 +56,7 @@ export async function POST(req: NextRequest) {
         const periodStart = item?.current_period_start ?? Math.floor(Date.now() / 1000);
         const periodEnd = item?.current_period_end ?? Math.floor(Date.now() / 1000);
 
-        await supabaseAdmin.from("subscriptions").upsert(
+        await getSupabaseAdmin().from("subscriptions").upsert(
           {
             user_id: userId,
             stripe_customer_id: session.customer as string,
@@ -67,7 +69,7 @@ export async function POST(req: NextRequest) {
           { onConflict: "user_id" }
         );
 
-        await supabaseAdmin
+        await getSupabaseAdmin()
           .from("profiles")
           .update({ plan: planId })
           .eq("id", userId);
@@ -81,7 +83,7 @@ export async function POST(req: NextRequest) {
         const updStart = updItem?.current_period_start ?? Math.floor(Date.now() / 1000);
         const updEnd = updItem?.current_period_end ?? Math.floor(Date.now() / 1000);
 
-        await supabaseAdmin
+        await getSupabaseAdmin()
           .from("subscriptions")
           .update({
             status: subscription.status === "active" ? "active" : "past_due",
@@ -96,7 +98,7 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
 
-        const { data: sub } = await supabaseAdmin
+        const { data: sub } = await getSupabaseAdmin()
           .from("subscriptions")
           .update({ status: "canceled" })
           .eq("stripe_subscription_id", subscription.id)
@@ -104,7 +106,7 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (sub?.user_id) {
-          await supabaseAdmin
+          await getSupabaseAdmin()
             .from("profiles")
             .update({ plan: "starter" })
             .eq("id", sub.user_id);
