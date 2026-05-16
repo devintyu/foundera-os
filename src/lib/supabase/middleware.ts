@@ -43,6 +43,7 @@ export async function updateSession(request: NextRequest) {
     (!user && path.startsWith("/audience")) ||
     (!user && path.startsWith("/funnels")) ||
     (!user && path.startsWith("/strategy")) ||
+    (!user && path.startsWith("/copy")) ||
     (!user && path.startsWith("/settings")) ||
     (!user && path.startsWith("/billing"))
   ) {

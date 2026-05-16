@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useUser } from "@/hooks/useUser";
 import {
   LayoutDashboard,
   Search,
@@ -9,6 +10,7 @@ import {
   Users,
   Filter,
   Sparkles,
+  PenTool,
   Settings,
   CreditCard,
   Zap,
@@ -20,13 +22,34 @@ const navItems = [
   { href: "/offers", label: "Offer Architect", icon: Package },
   { href: "/audience", label: "Audience Intelligence", icon: Users },
   { href: "/funnels", label: "Funnel Architect", icon: Filter },
+  { href: "/copy", label: "AI Copywriter", icon: PenTool },
   { href: "/strategy", label: "Strategy Advisor", icon: Sparkles },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/billing", label: "Billing", icon: CreditCard },
 ];
 
+const PLAN_LABELS: Record<string, string> = {
+  starter: "Starter",
+  pro: "Pro",
+  business: "Business",
+  elite: "Elite",
+};
+
 export default function Sidebar() {
   const pathname = usePathname();
+  const { user, profile } = useUser();
+
+  const displayName =
+    profile?.full_name ||
+    user?.user_metadata?.full_name ||
+    "Founder";
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const planLabel = PLAN_LABELS[profile?.plan || "starter"] || "Starter";
 
   return (
     <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[260px] flex-col border-r border-[#1E1E2E] bg-[#12121A] lg:flex">
@@ -42,7 +65,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href || pathname?.startsWith(item.href + "/");
@@ -74,25 +97,26 @@ export default function Sidebar() {
       {/* Bottom Section */}
       <div className="border-t border-[#1E1E2E] p-4">
         <div className="flex items-center gap-3">
-          {/* Avatar placeholder */}
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#00F0FF] text-sm font-semibold text-white">
-            F
+            {initials}
           </div>
           <div className="flex-1 overflow-hidden">
             <p className="truncate text-sm font-medium text-[#F8FAFC]">
-              Founder
+              {displayName}
             </p>
             <span className="inline-flex items-center rounded-full bg-[#1E1E2E] px-2 py-0.5 text-[10px] font-medium text-[#94A3B8]">
-              Free Plan
+              {planLabel} Plan
             </span>
           </div>
         </div>
-        <Link
-          href="/billing"
-          className="mt-3 flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] px-4 py-2 text-sm font-semibold text-[#0A0A0F] transition-opacity hover:opacity-90"
-        >
-          Upgrade
-        </Link>
+        {(profile?.plan === "starter" || !profile?.plan) && (
+          <Link
+            href="/billing"
+            className="mt-3 flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] px-4 py-2 text-sm font-semibold text-[#0A0A0F] transition-opacity hover:opacity-90"
+          >
+            Upgrade
+          </Link>
+        )}
       </div>
     </aside>
   );

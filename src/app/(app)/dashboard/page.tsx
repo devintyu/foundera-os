@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useUser } from "@/hooks/useUser";
+import { useSubscription } from "@/hooks/useSubscription";
 import {
   LayoutDashboard,
   Zap,
@@ -10,37 +12,16 @@ import {
   Users,
   Filter,
   Sparkles,
+  PenTool,
   ArrowRight,
+  Crown,
 } from "lucide-react";
-
-const stats = [
-  {
-    label: "Founder Stage",
-    value: "Explorer",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "AI Credits",
-    value: "50/50",
-    icon: Zap,
-  },
-  {
-    label: "Research Reports",
-    value: "0",
-    icon: FileText,
-  },
-  {
-    label: "Offers Created",
-    value: "0",
-    icon: Package,
-  },
-];
 
 const quickActions = [
   {
     href: "/market",
     title: "Market Intelligence",
-    description: "Research markets, competitors, and trends with AI analysis.",
+    description: "Research markets, competitors, and trends with AI.",
     icon: Search,
   },
   {
@@ -58,28 +39,101 @@ const quickActions = [
   {
     href: "/funnels",
     title: "Funnel Architect",
-    description: "Design AI-powered sales funnels that convert cold traffic.",
+    description: "Design AI-powered sales funnels that convert.",
     icon: Filter,
   },
   {
     href: "/strategy",
     title: "Strategy Advisor",
-    description: "Get Opus-level strategic advice in a live chat session.",
+    description: "Get Opus-level strategic advice in a live session.",
     icon: Sparkles,
+  },
+  {
+    href: "/copy",
+    title: "AI Copywriter",
+    description: "Generate headlines, hooks, and body copy instantly.",
+    icon: PenTool,
   },
 ];
 
+const STAGE_LABELS: Record<string, string> = {
+  explorer: "Explorer",
+  builder: "Builder",
+  operator: "Operator",
+  scaler: "Scaler",
+  owner: "Owner",
+};
+
+const PLAN_LABELS: Record<string, string> = {
+  starter: "Starter",
+  pro: "Pro",
+  business: "Business",
+  elite: "Elite",
+};
+
 export default function DashboardPage() {
+  const { user, profile, loading: userLoading } = useUser();
+  const { plan, aiCallsUsed, limits, loading: subLoading } = useSubscription();
+
+  const displayName =
+    profile?.full_name ||
+    user?.user_metadata?.full_name ||
+    "Founder";
+  const firstName = displayName.split(" ")[0];
+  const stage = STAGE_LABELS[profile?.founder_stage || "explorer"] || "Explorer";
+  const planLabel = PLAN_LABELS[plan] || "Starter";
+  const aiCallsLimit = limits.aiCalls === Infinity ? "∞" : limits.aiCalls;
+  const aiUsagePercent =
+    limits.aiCalls === Infinity
+      ? 5
+      : Math.round((aiCallsUsed / limits.aiCalls) * 100);
+
+  const isLoading = userLoading || subLoading;
+
+  const stats = [
+    {
+      label: "Founder Stage",
+      value: stage,
+      icon: LayoutDashboard,
+      color: "from-[#00F0FF]/10 to-[#8B5CF6]/10",
+      iconColor: "text-[#00F0FF]",
+    },
+    {
+      label: "AI Credits",
+      value: `${aiCallsUsed}/${aiCallsLimit}`,
+      icon: Zap,
+      color: "from-[#8B5CF6]/10 to-[#00F0FF]/10",
+      iconColor: "text-[#8B5CF6]",
+      bar: aiUsagePercent,
+    },
+    {
+      label: "Current Plan",
+      value: planLabel,
+      icon: Crown,
+      color: "from-[#F59E0B]/10 to-[#EF4444]/10",
+      iconColor: "text-[#F59E0B]",
+    },
+    {
+      label: "Tools Available",
+      value: "6",
+      icon: FileText,
+      color: "from-[#10B981]/10 to-[#00F0FF]/10",
+      iconColor: "text-[#10B981]",
+    },
+  ];
+
   return (
     <div className="space-y-8 p-6 pb-24 lg:pb-6">
       {/* Welcome Section */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
           <span className="bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] bg-clip-text text-transparent">
-            Welcome back, Founder
+            {isLoading ? "Welcome back" : `Welcome back, ${firstName}`}
           </span>
         </h1>
-        <p className="mt-1 text-[#94A3B8]">Your AI command center</p>
+        <p className="mt-1 text-[#94A3B8]">
+          Your AI command center — {planLabel} plan
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -92,29 +146,62 @@ export default function DashboardPage() {
               className="rounded-xl border border-[#1E1E2E] bg-[#12121A]/80 p-5 backdrop-blur-sm transition-colors hover:border-[#00F0FF]/20"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#00F0FF]/10">
-                  <Icon className="h-5 w-5 text-[#00F0FF]" />
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color}`}
+                >
+                  <Icon className={`h-5 w-5 ${stat.iconColor}`} />
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-xs font-medium text-[#94A3B8]">
                     {stat.label}
                   </p>
                   <p className="text-xl font-semibold text-[#F8FAFC]">
-                    {stat.value}
+                    {isLoading ? "—" : stat.value}
                   </p>
                 </div>
               </div>
+              {stat.bar !== undefined && (
+                <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#1E1E2E]">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] transition-all duration-500"
+                    style={{ width: `${Math.min(stat.bar, 100)}%` }}
+                  />
+                </div>
+              )}
             </div>
           );
         })}
       </div>
 
+      {/* Onboarding CTA */}
+      {!isLoading && profile && !profile.onboarding_completed && (
+        <Link
+          href="/onboarding"
+          className="group flex items-center justify-between rounded-xl border border-[#F59E0B]/30 bg-[#F59E0B]/5 p-5 transition-all hover:border-[#F59E0B]/50"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F59E0B]/10">
+              <Sparkles className="h-6 w-6 text-[#F59E0B]" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#F8FAFC]">
+                Complete your Founder Blueprint
+              </p>
+              <p className="text-xs text-[#94A3B8]">
+                Get AI-generated strategy personalized to your business
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="h-5 w-5 text-[#F59E0B] transition-transform group-hover:translate-x-1" />
+        </Link>
+      )}
+
       {/* Quick Actions */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-[#F8FAFC]">
-          Quick Actions
+          AI Tools
         </h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
