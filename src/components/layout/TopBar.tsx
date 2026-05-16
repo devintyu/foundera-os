@@ -8,8 +8,13 @@ const pageTitles: Record<string, string> = {
   "/market": "Market Intelligence",
   "/offers": "Offer Architect",
   "/audience": "Audience Intelligence",
+  "/funnels": "Funnel Architect",
+  "/strategy": "Strategy Advisor",
+  "/copy": "AI Copywriter",
+  "/history": "AI History",
   "/settings": "Settings",
   "/billing": "Billing",
+  "/admin": "Admin Panel",
 };
 
 export default function TopBar() {

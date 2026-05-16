@@ -9,7 +9,7 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
     const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
     const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 
-    if (!key) {
+    if (!key || key.startsWith("your_") || key.length < 10) {
       return;
     }
 
@@ -28,7 +28,7 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
 
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
-  if (!key) {
+  if (!key || key.startsWith("your_") || key.length < 10) {
     return <>{children}</>;
   }
 

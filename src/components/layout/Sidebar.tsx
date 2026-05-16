@@ -15,6 +15,7 @@ import {
   Settings,
   CreditCard,
   Zap,
+  Shield,
 } from "lucide-react";
 
 const navItems = [
@@ -95,6 +96,29 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Admin Link */}
+      {profile?.role === "admin" && (
+        <div className="px-3 pb-2">
+          <Link
+            href="/admin"
+            className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+              pathname?.startsWith("/admin")
+                ? "border-l-2 border-[#F59E0B] bg-[#F59E0B]/10 text-[#F59E0B]"
+                : "border-l-2 border-transparent text-[#94A3B8] hover:bg-[#1E1E2E] hover:text-[#F8FAFC]"
+            }`}
+          >
+            <Shield
+              className={`h-[18px] w-[18px] shrink-0 ${
+                pathname?.startsWith("/admin")
+                  ? "text-[#F59E0B]"
+                  : "text-[#94A3B8] group-hover:text-[#F8FAFC]"
+              }`}
+            />
+            Admin Panel
+          </Link>
+        </div>
+      )}
 
       {/* Bottom Section */}
       <div className="border-t border-[#1E1E2E] p-4">
