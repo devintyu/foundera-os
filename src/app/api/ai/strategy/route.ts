@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { getUserAndTrack } from "@/lib/ai/with-tracking";
 
 let _anthropic: Anthropic | null = null;
 function getAnthropic() {
@@ -62,10 +63,13 @@ export async function POST(request: Request) {
     });
 
     const textBlock = res.content.find((b) => b.type === "text");
+    const tokensUsed = res.usage.input_tokens + res.usage.output_tokens;
+
+    await getUserAndTrack(tokensUsed);
 
     return NextResponse.json({
       message: textBlock?.text ?? "I couldn't generate a response. Please try again.",
-      tokensUsed: res.usage.input_tokens + res.usage.output_tokens,
+      tokensUsed,
     });
   } catch (error) {
     console.error("Strategy chat error:", error);

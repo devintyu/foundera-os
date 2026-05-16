@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { routeAI } from "@/lib/ai/router";
 import { getCopywritingPrompt } from "@/lib/ai/prompts/copywriting";
+import { getUserAndTrack } from "@/lib/ai/with-tracking";
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +13,8 @@ export async function POST(request: Request) {
       userMessage: `Write high-converting ${type} copy for this product/service: "${product}" targeting "${audience}". ${tone ? `Tone: ${tone}.` : ""} Give me your best work.`,
       maxTokens: 4096,
     });
+
+    await getUserAndTrack(result.tokensUsed);
 
     try {
       const parsed = JSON.parse(result.content);

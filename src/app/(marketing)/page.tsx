@@ -34,9 +34,21 @@ const features = [
   },
   {
     icon: Brain,
-    title: "Founder Strategy",
+    title: "Funnel Architect",
     description:
-      "Opus-level strategic advice — business diagnosis, bottleneck detection, and 90-day growth roadmaps.",
+      "AI-designed sales funnels — traffic strategy, conversion optimization, and metrics benchmarks.",
+  },
+  {
+    icon: BarChart3,
+    title: "AI Copywriter",
+    description:
+      "Generate high-converting headlines, hooks, body copy, and CTAs for any channel — instantly.",
+  },
+  {
+    icon: Brain,
+    title: "Strategy Advisor",
+    description:
+      "Live Opus-level strategy sessions — diagnosis, bottleneck detection, and 90-day growth roadmaps.",
   },
 ];
 
@@ -189,12 +201,12 @@ export default function LandingPage() {
               </span>
             </h2>
             <p className="mx-auto max-w-xl text-[#94A3B8]">
-              Five AI systems working together to help you build, launch, and
+              Six AI systems working together to help you build, launch, and
               scale your business.
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature, i) => {
               const Icon = feature.icon;
               return (

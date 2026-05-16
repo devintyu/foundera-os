@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { routeAI } from "@/lib/ai/router";
+import { getUserAndTrack } from "@/lib/ai/with-tracking";
 
 const MOCK_DATA = {
   offer_name: "The Accelerator Blueprint",
@@ -61,6 +62,7 @@ Create a complete offer with compelling name, value proposition, pricing, bonuse
         maxTokens: 4096,
       });
 
+      await getUserAndTrack(aiResponse.tokensUsed);
       const parsed = JSON.parse(aiResponse.content);
       return NextResponse.json(parsed);
     } catch {

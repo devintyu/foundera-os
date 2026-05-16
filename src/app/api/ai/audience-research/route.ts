@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { routeAI } from "@/lib/ai/router";
+import { getUserAndTrack } from "@/lib/ai/with-tracking";
 
 const MOCK_DATA = {
   demographics:
@@ -77,6 +78,7 @@ Create a comprehensive audience profile including demographics, psychographics, 
         maxTokens: 4096,
       });
 
+      await getUserAndTrack(aiResponse.tokensUsed);
       const parsed = JSON.parse(aiResponse.content);
       return NextResponse.json(parsed);
     } catch {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { routeAI } from "@/lib/ai/router";
+import { getUserAndTrack } from "@/lib/ai/with-tracking";
 
 const MOCK_DATA = {
   overview:
@@ -64,10 +65,10 @@ Provide comprehensive market intelligence including overview, opportunities, com
         maxTokens: 4096,
       });
 
+      await getUserAndTrack(aiResponse.tokensUsed);
       const parsed = JSON.parse(aiResponse.content);
       return NextResponse.json(parsed);
     } catch {
-      // Fallback to mock data for development
       return NextResponse.json(MOCK_DATA);
     }
   } catch {

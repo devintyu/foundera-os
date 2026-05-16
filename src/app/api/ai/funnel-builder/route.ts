@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { routeAI } from "@/lib/ai/router";
 import { getFunnelPrompt } from "@/lib/ai/prompts/funnel";
+import { getUserAndTrack } from "@/lib/ai/with-tracking";
 
 export async function POST(request: Request) {
   try {
@@ -21,6 +22,8 @@ Design the most effective funnel to convert cold traffic into paying customers f
       userMessage,
       maxTokens: 4096,
     });
+
+    await getUserAndTrack(result.tokensUsed);
 
     try {
       const parsed = JSON.parse(result.content);
