@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle, Zap, Crown, Rocket, Loader2 } from "lucide-react";
 
@@ -61,6 +61,14 @@ const plans = [
 ];
 
 export default function BillingPage() {
+  return (
+    <Suspense>
+      <BillingContent />
+    </Suspense>
+  );
+}
+
+function BillingContent() {
   const [currentPlan] = useState("starter");
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
     "monthly"
