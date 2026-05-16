@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import { routeAI } from "@/lib/ai/router";
 import { getFunnelPrompt } from "@/lib/ai/prompts/funnel";
-import { getUserAndTrack } from "@/lib/ai/with-tracking";
+import { getUserTrackAndSave } from "@/lib/ai/with-tracking";
+import { checkAILimits } from "@/lib/ai/check-limits";
 
 export async function POST(request: Request) {
   try {
+    const { allowed, remaining } = await checkAILimits();
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "AI credit limit reached. Upgrade your plan for more.", remaining },
+        { status: 429 }
+      );
+    }
+
     const { offer, audience, pricePoint, goal } = await request.json();
 
     const userMessage = `Design a complete sales funnel for this business:
@@ -23,10 +32,15 @@ Design the most effective funnel to convert cold traffic into paying customers f
       maxTokens: 4096,
     });
 
-    await getUserAndTrack(result.tokensUsed);
-
     try {
       const parsed = JSON.parse(result.content);
+      await getUserTrackAndSave(
+        result.tokensUsed,
+        "funnel_architect",
+        offer,
+        parsed,
+        { offer, audience, pricePoint, goal }
+      );
       return NextResponse.json(parsed);
     } catch {
       return NextResponse.json({

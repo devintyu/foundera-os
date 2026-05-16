@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import { routeAI } from "@/lib/ai/router";
 import { getCopywritingPrompt } from "@/lib/ai/prompts/copywriting";
-import { getUserAndTrack } from "@/lib/ai/with-tracking";
+import { getUserTrackAndSave } from "@/lib/ai/with-tracking";
+import { checkAILimits } from "@/lib/ai/check-limits";
 
 export async function POST(request: Request) {
   try {
+    const { allowed, remaining } = await checkAILimits();
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "AI credit limit reached. Upgrade your plan for more.", remaining },
+        { status: 429 }
+      );
+    }
+
     const { type, product, audience, tone } = await request.json();
 
     const result = await routeAI({
@@ -14,10 +23,15 @@ export async function POST(request: Request) {
       maxTokens: 4096,
     });
 
-    await getUserAndTrack(result.tokensUsed);
-
     try {
       const parsed = JSON.parse(result.content);
+      await getUserTrackAndSave(
+        result.tokensUsed,
+        "copywriter",
+        `${type} — ${product.slice(0, 50)}`,
+        parsed,
+        { type, product, audience, tone }
+      );
       return NextResponse.json(parsed);
     } catch {
       return NextResponse.json({

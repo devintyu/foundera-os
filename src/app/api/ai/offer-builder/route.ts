@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { routeAI } from "@/lib/ai/router";
-import { getUserAndTrack } from "@/lib/ai/with-tracking";
+import { getUserTrackAndSave } from "@/lib/ai/with-tracking";
+import { checkAILimits } from "@/lib/ai/check-limits";
 
 const MOCK_DATA = {
   offer_name: "The Accelerator Blueprint",
@@ -35,6 +36,14 @@ Return ONLY valid JSON, no markdown or extra text.`;
 
 export async function POST(req: NextRequest) {
   try {
+    const { allowed, remaining } = await checkAILimits();
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "AI credit limit reached. Upgrade your plan for more.", remaining },
+        { status: 429 }
+      );
+    }
+
     const { title, target_audience, problem, price_range, offer_type } =
       await req.json();
 
@@ -62,8 +71,14 @@ Create a complete offer with compelling name, value proposition, pricing, bonuse
         maxTokens: 4096,
       });
 
-      await getUserAndTrack(aiResponse.tokensUsed);
       const parsed = JSON.parse(aiResponse.content);
+      await getUserTrackAndSave(
+        aiResponse.tokensUsed,
+        "offer_builder",
+        title,
+        parsed,
+        { title, target_audience, problem, price_range, offer_type }
+      );
       return NextResponse.json(parsed);
     } catch {
       return NextResponse.json(MOCK_DATA);

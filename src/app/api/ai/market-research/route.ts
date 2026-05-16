@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { routeAI } from "@/lib/ai/router";
-import { getUserAndTrack } from "@/lib/ai/with-tracking";
+import { getUserTrackAndSave } from "@/lib/ai/with-tracking";
+import { checkAILimits } from "@/lib/ai/check-limits";
 
 const MOCK_DATA = {
   overview:
@@ -41,6 +42,14 @@ Return ONLY valid JSON, no markdown or extra text.`;
 
 export async function POST(req: NextRequest) {
   try {
+    const { allowed, remaining } = await checkAILimits();
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "AI credit limit reached. Upgrade your plan for more.", remaining },
+        { status: 429 }
+      );
+    }
+
     const { industry, niche, questions } = await req.json();
 
     if (!industry || !niche) {
@@ -65,8 +74,14 @@ Provide comprehensive market intelligence including overview, opportunities, com
         maxTokens: 4096,
       });
 
-      await getUserAndTrack(aiResponse.tokensUsed);
       const parsed = JSON.parse(aiResponse.content);
+      await getUserTrackAndSave(
+        aiResponse.tokensUsed,
+        "market_researcher",
+        `${industry} — ${niche}`,
+        parsed,
+        { industry, niche, questions }
+      );
       return NextResponse.json(parsed);
     } catch {
       return NextResponse.json(MOCK_DATA);

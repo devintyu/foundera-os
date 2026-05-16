@@ -14,10 +14,11 @@ export const stripe = new Proxy({} as Stripe, {
 });
 
 export const PLANS = {
-  starter: { name: "Starter", price: 29, priceId: "price_starter_monthly" },
-  pro: { name: "Pro", price: 79, priceId: "price_pro_monthly" },
-  business: { name: "Business", price: 199, priceId: "price_business_monthly" },
-  elite: { name: "Elite", price: 499, priceId: "price_elite_monthly" },
+  starter: { name: "Starter", price: 29, priceId: " price_1TXhgcAhY0LpGPLllxkHSmSM" },
+  pro: { name: "Pro", price: 79, priceId: " price_1TXhNkAhY0LpGPLlfflvLevv" },
+  business: { name: "Business", price: 199, priceId: " price_1TXhh5AhY0LpGPLlUbPrccOy" },
+  elite: { name: "Elite", price: 499, priceId: " price_1TXhhWAhY0LpGPLlzs9UJUR4" },
 } as const;
 
 export type PlanId = keyof typeof PLANS;
+

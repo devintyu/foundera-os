@@ -11,6 +11,7 @@ import {
   Filter,
   Sparkles,
   PenTool,
+  Clock,
   Settings,
   CreditCard,
   Zap,
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/funnels", label: "Funnel Architect", icon: Filter },
   { href: "/copy", label: "AI Copywriter", icon: PenTool },
   { href: "/strategy", label: "Strategy Advisor", icon: Sparkles },
+  { href: "/history", label: "AI History", icon: Clock },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/billing", label: "Billing", icon: CreditCard },
 ];

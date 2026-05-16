@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getUserAndTrack } from "@/lib/ai/with-tracking";
+import { checkAILimits } from "@/lib/ai/check-limits";
 
 let _anthropic: Anthropic | null = null;
 function getAnthropic() {
@@ -43,6 +44,14 @@ interface ChatMessage {
 
 export async function POST(request: Request) {
   try {
+    const { allowed, remaining } = await checkAILimits();
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "AI credit limit reached. Upgrade your plan for more.", remaining },
+        { status: 429 }
+      );
+    }
+
     const { messages, context } = await request.json();
 
     let systemPrompt = SYSTEM_PROMPT;

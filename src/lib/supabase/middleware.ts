@@ -44,6 +44,7 @@ export async function updateSession(request: NextRequest) {
     (!user && path.startsWith("/funnels")) ||
     (!user && path.startsWith("/strategy")) ||
     (!user && path.startsWith("/copy")) ||
+    (!user && path.startsWith("/history")) ||
     (!user && path.startsWith("/settings")) ||
     (!user && path.startsWith("/billing"))
   ) {

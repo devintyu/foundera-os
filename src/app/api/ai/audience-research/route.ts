@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { routeAI } from "@/lib/ai/router";
-import { getUserAndTrack } from "@/lib/ai/with-tracking";
+import { getUserTrackAndSave } from "@/lib/ai/with-tracking";
+import { checkAILimits } from "@/lib/ai/check-limits";
 
 const MOCK_DATA = {
   demographics:
@@ -54,6 +55,14 @@ Return ONLY valid JSON, no markdown or extra text.`;
 
 export async function POST(req: NextRequest) {
   try {
+    const { allowed, remaining } = await checkAILimits();
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "AI credit limit reached. Upgrade your plan for more.", remaining },
+        { status: 429 }
+      );
+    }
+
     const { persona_name, industry, ideal_customer } = await req.json();
 
     if (!persona_name || !industry || !ideal_customer) {
@@ -78,8 +87,14 @@ Create a comprehensive audience profile including demographics, psychographics, 
         maxTokens: 4096,
       });
 
-      await getUserAndTrack(aiResponse.tokensUsed);
       const parsed = JSON.parse(aiResponse.content);
+      await getUserTrackAndSave(
+        aiResponse.tokensUsed,
+        "audience_analyst",
+        persona_name,
+        parsed,
+        { persona_name, industry, ideal_customer }
+      );
       return NextResponse.json(parsed);
     } catch {
       return NextResponse.json(MOCK_DATA);
