@@ -8,6 +8,8 @@ import {
   Package,
   Search,
   Users,
+  Filter,
+  Sparkles,
   ArrowRight,
 } from "lucide-react";
 
@@ -52,6 +54,18 @@ const quickActions = [
     title: "Audience Intelligence",
     description: "Discover and understand your ideal customer profiles.",
     icon: Users,
+  },
+  {
+    href: "/funnels",
+    title: "Funnel Architect",
+    description: "Design AI-powered sales funnels that convert cold traffic.",
+    icon: Filter,
+  },
+  {
+    href: "/strategy",
+    title: "Strategy Advisor",
+    description: "Get Opus-level strategic advice in a live chat session.",
+    icon: Sparkles,
   },
 ];
 

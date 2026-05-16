@@ -6,7 +6,7 @@ import {
   LayoutDashboard,
   Search,
   Package,
-  Users,
+  Sparkles,
   MoreHorizontal,
 } from "lucide-react";
 
@@ -14,7 +14,7 @@ const mobileNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/market", label: "Market", icon: Search },
   { href: "/offers", label: "Offers", icon: Package },
-  { href: "/audience", label: "Audience", icon: Users },
+  { href: "/strategy", label: "Strategy", icon: Sparkles },
   { href: "/settings", label: "More", icon: MoreHorizontal },
 ];
 

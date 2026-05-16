@@ -7,6 +7,8 @@ import {
   Search,
   Package,
   Users,
+  Filter,
+  Sparkles,
   Settings,
   CreditCard,
   Zap,
@@ -17,6 +19,8 @@ const navItems = [
   { href: "/market", label: "Market Intelligence", icon: Search },
   { href: "/offers", label: "Offer Architect", icon: Package },
   { href: "/audience", label: "Audience Intelligence", icon: Users },
+  { href: "/funnels", label: "Funnel Architect", icon: Filter },
+  { href: "/strategy", label: "Strategy Advisor", icon: Sparkles },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/billing", label: "Billing", icon: CreditCard },
 ];
