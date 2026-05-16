@@ -1,8 +1,18 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+let _openai: OpenAI | null = null;
+let _anthropic: Anthropic | null = null;
+
+function getOpenAI() {
+  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return _openai;
+}
+
+function getAnthropic() {
+  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return _anthropic;
+}
 
 export type AIModel = "gpt-4o-mini" | "claude-sonnet" | "claude-opus";
 
@@ -55,7 +65,7 @@ export async function routeAI({
   const model = MODEL_MAP[agentType];
 
   if (model === "gpt-4o-mini") {
-    const res = await openai.chat.completions.create({
+    const res = await getOpenAI().chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
@@ -72,7 +82,7 @@ export async function routeAI({
 
   const claudeModel =
     model === "claude-opus" ? "claude-opus-4-6" : "claude-sonnet-4-6";
-  const res = await anthropic.messages.create({
+  const res = await getAnthropic().messages.create({
     model: claudeModel,
     max_tokens: maxTokens,
     system: systemPrompt,
