@@ -10,6 +10,8 @@ import {
   Users,
   TrendingUp,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/use-language";
+import { t } from "@/lib/i18n/language-detector";
 
 interface MonthlyUsage {
   month: string;
@@ -50,6 +52,7 @@ const AGENT_COLORS: Record<string, string> = {
 };
 
 export default function AdminAnalyticsPage() {
+  const { language: lang } = useLanguage();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -59,12 +62,12 @@ export default function AdminAnalyticsPage() {
       try {
         const res = await fetch("/api/admin/analytics");
         if (!res.ok) {
-          setError(res.status === 403 ? "Access denied." : "Failed to load analytics.");
+          setError(res.status === 403 ? "access_denied_short" : "failed_analytics");
           return;
         }
         setData(await res.json());
       } catch {
-        setError("Failed to load analytics.");
+        setError("failed_analytics");
       } finally {
         setLoading(false);
       }
@@ -84,7 +87,7 @@ export default function AdminAnalyticsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-32">
         <Shield className="h-12 w-12 text-red-500" />
-        <p className="mt-4 text-lg font-semibold text-[#F8FAFC]">{error}</p>
+        <p className="mt-4 text-lg font-semibold text-[#F8FAFC]">{t(`admin.${error}`, lang)}</p>
       </div>
     );
   }
@@ -102,20 +105,20 @@ export default function AdminAnalyticsPage() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#F8FAFC]">AI Analytics</h1>
-          <p className="text-sm text-[#94A3B8]">Usage trends and insights</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#F8FAFC]">{t("admin.ai_analytics", lang)}</h1>
+          <p className="text-sm text-[#94A3B8]">{t("admin.usage_trends", lang)}</p>
         </div>
       </div>
 
       {/* Monthly Usage Chart */}
       <div className="rounded-xl border border-[#1E1E2E] bg-[#12121A]/80 p-6">
         <h3 className="mb-6 flex items-center gap-2 text-sm font-semibold text-[#F8FAFC]">
-          <TrendingUp className="h-4 w-4 text-[#00F0FF]" /> Monthly AI Usage (6 months)
+          <TrendingUp className="h-4 w-4 text-[#00F0FF]" /> {t("admin.monthly_usage_6m", lang)}
         </h3>
         <div className="flex items-end gap-3" style={{ height: 200 }}>
           {data.usageByMonth.map((m) => {
             const height = Math.max((m.totalCalls / maxCalls) * 100, 4);
-            const monthLabel = new Date(m.month + "-01").toLocaleDateString("en-US", { month: "short" });
+            const monthLabel = new Date(m.month + "-01").toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { month: "short" });
             return (
               <div key={m.month} className="flex flex-1 flex-col items-center gap-2">
                 <span className="text-xs font-medium text-[#F8FAFC]">{m.totalCalls}</span>
@@ -135,10 +138,10 @@ export default function AdminAnalyticsPage() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-[#1E1E2E] text-[#94A3B8]">
-                <th className="pb-2 font-medium">Month</th>
-                <th className="pb-2 font-medium">AI Calls</th>
-                <th className="pb-2 font-medium">Tokens Used</th>
-                <th className="pb-2 font-medium">Active Users</th>
+                <th className="pb-2 font-medium">{t("admin.col_month", lang)}</th>
+                <th className="pb-2 font-medium">{t("admin.col_ai_calls", lang)}</th>
+                <th className="pb-2 font-medium">{t("admin.tokens_used", lang)}</th>
+                <th className="pb-2 font-medium">{t("admin.col_active_users", lang)}</th>
               </tr>
             </thead>
             <tbody>
@@ -165,7 +168,7 @@ export default function AdminAnalyticsPage() {
         {/* Agent Distribution */}
         <div className="rounded-xl border border-[#1E1E2E] bg-[#12121A]/80 p-6">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#F8FAFC]">
-            <BarChart3 className="h-4 w-4 text-[#8B5CF6]" /> Usage by AI Tool
+            <BarChart3 className="h-4 w-4 text-[#8B5CF6]" /> {t("admin.usage_by_tool", lang)}
           </h3>
           <div className="space-y-3">
             {Object.entries(data.agentDistribution)
@@ -188,7 +191,7 @@ export default function AdminAnalyticsPage() {
                 );
               })}
             {Object.keys(data.agentDistribution).length === 0 && (
-              <p className="py-8 text-center text-sm text-[#94A3B8]">No AI usage data yet</p>
+              <p className="py-8 text-center text-sm text-[#94A3B8]">{t("admin.no_ai_data", lang)}</p>
             )}
           </div>
         </div>
@@ -196,7 +199,7 @@ export default function AdminAnalyticsPage() {
         {/* Top Users */}
         <div className="rounded-xl border border-[#1E1E2E] bg-[#12121A]/80 p-6">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#F8FAFC]">
-            <Users className="h-4 w-4 text-[#F59E0B]" /> Top Users (This Month)
+            <Users className="h-4 w-4 text-[#F59E0B]" /> {t("admin.top_users_month", lang)}
           </h3>
           {data.topUsers.length > 0 ? (
             <div className="space-y-2">
@@ -214,7 +217,7 @@ export default function AdminAnalyticsPage() {
                       <p className="text-sm font-medium text-[#F8FAFC]">
                         {u.profile?.full_name || "Unknown"}
                       </p>
-                      <p className="text-[10px] capitalize text-[#94A3B8]">{u.profile?.plan || "starter"} plan</p>
+                      <p className="text-[10px] capitalize text-[#94A3B8]">{u.profile?.plan || "starter"} {t("admin.plan_suffix", lang)}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -232,7 +235,7 @@ export default function AdminAnalyticsPage() {
               ))}
             </div>
           ) : (
-            <p className="py-8 text-center text-sm text-[#94A3B8]">No usage data this month</p>
+            <p className="py-8 text-center text-sm text-[#94A3B8]">{t("admin.no_usage_month", lang)}</p>
           )}
         </div>
       </div>

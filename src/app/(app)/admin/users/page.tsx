@@ -10,6 +10,8 @@ import {
   Shield,
   ArrowLeft,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/use-language";
+import { t } from "@/lib/i18n/language-detector";
 
 interface UserRow {
   id: string;
@@ -39,6 +41,7 @@ const PLAN_BADGES: Record<string, string> = {
 };
 
 export default function AdminUsersPage() {
+  const { language: lang } = useLanguage();
   const [data, setData] = useState<UsersResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -56,12 +59,12 @@ export default function AdminUsersPage() {
 
       const res = await fetch(`/api/admin/users?${params}`);
       if (!res.ok) {
-        setError(res.status === 403 ? "Access denied." : "Failed to load users.");
+        setError(res.status === 403 ? "access_denied_short" : "failed_users");
         return;
       }
       setData(await res.json());
     } catch {
-      setError("Failed to load users.");
+      setError("failed_users");
     } finally {
       setLoading(false);
     }
@@ -79,7 +82,7 @@ export default function AdminUsersPage() {
     return (
       <div className="flex flex-col items-center justify-center py-32">
         <Shield className="h-12 w-12 text-red-500" />
-        <p className="mt-4 text-lg font-semibold text-[#F8FAFC]">{error}</p>
+        <p className="mt-4 text-lg font-semibold text-[#F8FAFC]">{t(`admin.${error}`, lang)}</p>
       </div>
     );
   }
@@ -93,8 +96,8 @@ export default function AdminUsersPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#F8FAFC]">User Management</h1>
-            <p className="text-sm text-[#94A3B8]">{data?.total || 0} total users</p>
+            <h1 className="text-2xl font-bold tracking-tight text-[#F8FAFC]">{t("admin.user_management", lang)}</h1>
+            <p className="text-sm text-[#94A3B8]">{data?.total || 0} {t("admin.total_users_count", lang)}</p>
           </div>
         </div>
       </div>
@@ -105,7 +108,7 @@ export default function AdminUsersPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]" />
           <input
             type="text"
-            placeholder="Search by name..."
+            placeholder={t("admin.search_name", lang)}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-lg border border-[#1E1E2E] bg-[#12121A] py-2 pl-10 pr-4 text-sm text-[#F8FAFC] placeholder-[#94A3B8] outline-none focus:border-[#00F0FF]/50"
@@ -116,7 +119,7 @@ export default function AdminUsersPage() {
           onChange={(e) => setPlanFilter(e.target.value)}
           className="rounded-lg border border-[#1E1E2E] bg-[#12121A] px-3 py-2 text-sm text-[#F8FAFC] outline-none focus:border-[#00F0FF]/50"
         >
-          <option value="">All Plans</option>
+          <option value="">{t("admin.all_plans", lang)}</option>
           <option value="starter">Starter</option>
           <option value="pro">Pro</option>
           <option value="business">Business</option>
@@ -134,13 +137,13 @@ export default function AdminUsersPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-[#1E1E2E] text-xs text-[#94A3B8]">
-                <th className="px-4 py-3 font-medium">User</th>
-                <th className="px-4 py-3 font-medium">Plan</th>
-                <th className="hidden px-4 py-3 font-medium md:table-cell">Stage</th>
-                <th className="hidden px-4 py-3 font-medium lg:table-cell">AI Calls</th>
-                <th className="hidden px-4 py-3 font-medium lg:table-cell">Tokens</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Joined</th>
+                <th className="px-4 py-3 font-medium">{t("admin.col_user", lang)}</th>
+                <th className="px-4 py-3 font-medium">{t("admin.col_plan", lang)}</th>
+                <th className="hidden px-4 py-3 font-medium md:table-cell">{t("admin.col_stage", lang)}</th>
+                <th className="hidden px-4 py-3 font-medium lg:table-cell">{t("admin.col_ai_calls", lang)}</th>
+                <th className="hidden px-4 py-3 font-medium lg:table-cell">{t("admin.col_tokens", lang)}</th>
+                <th className="px-4 py-3 font-medium">{t("admin.col_status", lang)}</th>
+                <th className="px-4 py-3 font-medium">{t("admin.col_joined", lang)}</th>
                 <th className="px-4 py-3 font-medium"></th>
               </tr>
             </thead>
@@ -183,18 +186,18 @@ export default function AdminUsersPage() {
                         {u.subscription.status.replace("_", " ")}
                       </span>
                     ) : (
-                      <span className="text-xs text-[#94A3B8]">Free</span>
+                      <span className="text-xs text-[#94A3B8]">{t("admin.free", lang)}</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-[#94A3B8]">
-                    {new Date(u.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
+                    {new Date(u.created_at).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { month: "short", day: "numeric", year: "2-digit" })}
                   </td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/admin/users/${u.id}`}
                       className="text-xs font-medium text-[#00F0FF] hover:underline"
                     >
-                      View
+                      {t("admin.view", lang)}
                     </Link>
                   </td>
                 </tr>
@@ -203,7 +206,7 @@ export default function AdminUsersPage() {
                 <tr>
                   <td colSpan={8} className="px-4 py-16 text-center text-[#94A3B8]">
                     <Users className="mx-auto h-8 w-8 text-[#1E1E2E]" />
-                    <p className="mt-2">No users found</p>
+                    <p className="mt-2">{t("admin.no_users_found", lang)}</p>
                   </td>
                 </tr>
               )}
@@ -216,7 +219,7 @@ export default function AdminUsersPage() {
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-xs text-[#94A3B8]">
-            Page {data.page} of {data.totalPages}
+            {t("admin.page_of", lang)} {data.page} {t("admin.of_total", lang)} {data.totalPages}
           </p>
           <div className="flex gap-2">
             <button

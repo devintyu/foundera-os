@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getUserAndTrack } from "@/lib/ai/with-tracking";
 import { checkAILimits } from "@/lib/ai/check-limits";
+import { detectLanguage } from "@/lib/i18n/language-detector";
 
 let _anthropic: Anthropic | null = null;
 function getAnthropic() {
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { messages, context } = await request.json();
+    const { messages, context, language } = await request.json();
 
     let systemPrompt = SYSTEM_PROMPT;
     if (context) {
@@ -63,6 +64,15 @@ export async function POST(request: Request) {
       role: m.role as "user" | "assistant",
       content: m.content,
     }));
+
+    const uiLang = language || (() => {
+      const lastUserMessage = [...messages].reverse().find((m: ChatMessage) => m.role === "user");
+      return lastUserMessage ? detectLanguage(lastUserMessage.content) : "en";
+    })();
+
+    if (uiLang === "zh") {
+      systemPrompt += "\n\n**CRITICAL: The user is communicating in Chinese. You MUST respond ENTIRELY in Simplified Chinese (简体中文). Do not use English unless it is a proper noun or technical term with no standard Chinese equivalent. 你必须用简体中文回复。**";
+    }
 
     const res = await getAnthropic().messages.create({
       model: "claude-sonnet-4-6",

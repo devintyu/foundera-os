@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/lib/i18n/use-language";
 import {
   LayoutDashboard,
   Search,
@@ -9,22 +10,24 @@ import {
   Sparkles,
   MoreHorizontal,
 } from "lucide-react";
+import { t } from "@/lib/i18n/language-detector";
 
-const mobileNavItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/market", label: "Market", icon: Search },
-  { href: "/offers", label: "Offers", icon: Package },
-  { href: "/strategy", label: "Strategy", icon: Sparkles },
-  { href: "/settings", label: "More", icon: MoreHorizontal },
+const mobileNavDefs = [
+  { href: "/dashboard", labelKey: "dashboard.title", icon: LayoutDashboard },
+  { href: "/market", labelKey: "market.title", icon: Search },
+  { href: "/offers", labelKey: "offers.title", icon: Package },
+  { href: "/strategy", labelKey: "strategy.title", icon: Sparkles },
+  { href: "/settings", labelKey: "settings.title", icon: MoreHorizontal },
 ];
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const { language } = useLanguage();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#1E1E2E] bg-[#12121A] lg:hidden">
       <div className="flex items-center justify-around px-2 py-2">
-        {mobileNavItems.map((item) => {
+        {mobileNavDefs.map((item) => {
           const isActive =
             pathname === item.href || pathname?.startsWith(item.href + "/");
           const Icon = item.icon;
@@ -45,13 +48,12 @@ export default function MobileNav() {
                   isActive ? "text-[#00F0FF]" : "text-[#94A3B8]"
                 }`}
               >
-                {item.label}
+                {t(item.labelKey, language)}
               </span>
             </Link>
           );
         })}
       </div>
-      {/* Safe area spacer for iOS */}
       <div className="h-[env(safe-area-inset-bottom)]" />
     </nav>
   );

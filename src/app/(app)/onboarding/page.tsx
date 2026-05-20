@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/hooks/useUser";
+import { useLanguage } from "@/lib/i18n/use-language";
+import { t, type Language } from "@/lib/i18n/language-detector";
 import {
   ChevronLeft,
   ChevronRight,
@@ -63,13 +65,7 @@ interface Blueprint {
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
-const STEPS = [
-  { label: "Who are you?", icon: User },
-  { label: "Your business", icon: Briefcase },
-  { label: "Your goals", icon: Target },
-  { label: "Your bottleneck", icon: AlertTriangle },
-  { label: "Blueprint", icon: Rocket },
-];
+const STEP_ICONS = [User, Briefcase, Target, AlertTriangle, Rocket];
 
 const ROLES = [
   "entrepreneur",
@@ -124,30 +120,30 @@ const REVENUE_STAGES = [
 ];
 
 const GOALS = [
-  { value: "Build first offer", icon: Package },
-  { value: "Get more clients", icon: Users },
-  { value: "Automate operations", icon: Settings },
-  { value: "Scale revenue", icon: TrendingUp },
-  { value: "Build personal brand", icon: Megaphone },
-  { value: "Launch digital product", icon: Rocket },
-  { value: "Build AI workflows", icon: Bot },
+  { value: "Build first offer", icon: Package, labelKey: "goal_first_offer" },
+  { value: "Get more clients", icon: Users, labelKey: "goal_more_clients" },
+  { value: "Automate operations", icon: Settings, labelKey: "goal_automate" },
+  { value: "Scale revenue", icon: TrendingUp, labelKey: "goal_scale_revenue" },
+  { value: "Build personal brand", icon: Megaphone, labelKey: "goal_personal_brand" },
+  { value: "Launch digital product", icon: Rocket, labelKey: "goal_digital_product" },
+  { value: "Build AI workflows", icon: Bot, labelKey: "goal_ai_workflows" },
 ];
 
 const BOTTLENECKS = [
-  { value: "No clear offer", icon: Package },
-  { value: "No audience", icon: Users },
-  { value: "Low traffic", icon: Globe },
-  { value: "Poor conversion", icon: BarChart3 },
-  { value: "No systems", icon: Settings },
-  { value: "Pricing confusion", icon: DollarSign },
-  { value: "Don't know where to start", icon: HelpCircle },
+  { value: "No clear offer", icon: Package, labelKey: "bn_no_offer" },
+  { value: "No audience", icon: Users, labelKey: "bn_no_audience" },
+  { value: "Low traffic", icon: Globe, labelKey: "bn_low_traffic" },
+  { value: "Poor conversion", icon: BarChart3, labelKey: "bn_poor_conversion" },
+  { value: "No systems", icon: Settings, labelKey: "bn_no_systems" },
+  { value: "Pricing confusion", icon: DollarSign, labelKey: "bn_pricing" },
+  { value: "Don't know where to start", icon: HelpCircle, labelKey: "bn_no_start" },
 ];
 
-const LOADING_MESSAGES = [
-  "Analyzing your profile...",
-  "Researching your market...",
-  "Crafting your strategy...",
-  "Building your blueprint...",
+const getLoadingMessages = (lang: Language) => [
+  t("onboarding.loading_1", lang),
+  t("onboarding.loading_2", lang),
+  t("onboarding.loading_3", lang),
+  t("onboarding.loading_4", lang),
 ];
 
 /* ------------------------------------------------------------------ */
@@ -167,29 +163,31 @@ const selectClass =
 function StepWhoAreYou({
   data,
   onChange,
+  lang,
 }: {
   data: OnboardingData;
   onChange: (patch: Partial<OnboardingData>) => void;
+  lang: Language;
 }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#F8FAFC]">Who are you?</h2>
+        <h2 className="text-2xl font-bold text-[#F8FAFC]">{t("onboarding.who_title", lang)}</h2>
         <p className="mt-1 text-sm text-[#94A3B8]">
-          Tell us a bit about yourself so we can personalize your experience.
+          {t("onboarding.who_desc", lang)}
         </p>
       </div>
 
       {/* Full Name */}
       <div>
         <label className="mb-2 block text-sm font-medium text-[#F8FAFC]">
-          Full name
+          {t("onboarding.full_name", lang)}
         </label>
         <input
           type="text"
           value={data.fullName}
           onChange={(e) => onChange({ fullName: e.target.value })}
-          placeholder="Your full name"
+          placeholder={t("onboarding.full_name_placeholder", lang)}
           className={inputClass}
         />
       </div>
@@ -197,7 +195,7 @@ function StepWhoAreYou({
       {/* Role */}
       <div>
         <label className="mb-2 block text-sm font-medium text-[#F8FAFC]">
-          What best describes you?
+          {t("onboarding.role_label", lang)}
         </label>
         <div className="relative">
           <select
@@ -205,10 +203,10 @@ function StepWhoAreYou({
             onChange={(e) => onChange({ role: e.target.value })}
             className={selectClass}
           >
-            <option value="">Select your role</option>
+            <option value="">{t("onboarding.role_placeholder", lang)}</option>
             {ROLES.map((r) => (
               <option key={r} value={r}>
-                {r.charAt(0).toUpperCase() + r.slice(1)}
+                {t("onboarding.role_" + r.replace(" ", "_").toLowerCase(), lang)}
               </option>
             ))}
           </select>
@@ -219,7 +217,7 @@ function StepWhoAreYou({
       {/* Experience Level */}
       <div>
         <label className="mb-3 block text-sm font-medium text-[#F8FAFC]">
-          Experience level
+          {t("onboarding.experience_label", lang)}
         </label>
         <div className="grid grid-cols-3 gap-3">
           {EXPERIENCE_LEVELS.map((lvl) => (
@@ -240,10 +238,10 @@ function StepWhoAreYou({
                     : "text-[#F8FAFC]"
                 }`}
               >
-                {lvl.label}
+                {t("onboarding.exp_" + lvl.value, lang)}
               </p>
               <p className="mt-0.5 text-xs text-[#94A3B8]">
-                {lvl.description}
+                {t("onboarding.exp_" + lvl.value + "_desc", lang)}
               </p>
             </button>
           ))}
@@ -256,9 +254,11 @@ function StepWhoAreYou({
 function StepYourBusiness({
   data,
   onChange,
+  lang,
 }: {
   data: OnboardingData;
   onChange: (patch: Partial<OnboardingData>) => void;
+  lang: Language;
 }) {
   const [industrySearch, setIndustrySearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -270,16 +270,16 @@ function StepYourBusiness({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#F8FAFC]">Your business</h2>
+        <h2 className="text-2xl font-bold text-[#F8FAFC]">{t("onboarding.business_title", lang)}</h2>
         <p className="mt-1 text-sm text-[#94A3B8]">
-          Help us understand your business so we can craft the right strategy.
+          {t("onboarding.business_desc", lang)}
         </p>
       </div>
 
       {/* Industry (searchable dropdown) */}
       <div className="relative">
         <label className="mb-2 block text-sm font-medium text-[#F8FAFC]">
-          Industry
+          {t("onboarding.industry_label", lang)}
         </label>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]" />
@@ -293,7 +293,7 @@ function StepYourBusiness({
             }}
             onFocus={() => setShowDropdown(true)}
             onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-            placeholder="Search industry..."
+            placeholder={t("onboarding.industry_placeholder", lang)}
             className={`${inputClass} pl-10`}
           />
         </div>
@@ -314,7 +314,7 @@ function StepYourBusiness({
                     : "text-[#F8FAFC]"
                 }`}
               >
-                {ind.charAt(0).toUpperCase() + ind.slice(1)}
+                {t("onboarding.ind_" + ind.replace(" ", "_"), lang)}
               </button>
             ))}
           </div>
@@ -324,12 +324,12 @@ function StepYourBusiness({
       {/* Business Description */}
       <div>
         <label className="mb-2 block text-sm font-medium text-[#F8FAFC]">
-          Describe your business (or idea)
+          {t("onboarding.describe_label", lang)}
         </label>
         <textarea
           value={data.businessDescription}
           onChange={(e) => onChange({ businessDescription: e.target.value })}
-          placeholder="What does your business do? Who do you serve? What problem do you solve?"
+          placeholder={t("onboarding.describe_placeholder", lang)}
           rows={4}
           className={`${inputClass} resize-none`}
         />
@@ -338,34 +338,37 @@ function StepYourBusiness({
       {/* Revenue Stage */}
       <div>
         <label className="mb-3 block text-sm font-medium text-[#F8FAFC]">
-          Revenue stage
+          {t("onboarding.revenue_label", lang)}
         </label>
         <div className="grid grid-cols-2 gap-3">
-          {REVENUE_STAGES.map((stage) => (
-            <button
-              key={stage.value}
-              type="button"
-              onClick={() => onChange({ revenueStage: stage.value })}
-              className={`rounded-xl border p-4 text-left transition-all duration-200 ${
-                data.revenueStage === stage.value
-                  ? "border-[#00F0FF]/60 bg-[#00F0FF]/10 shadow-[0_0_20px_rgba(0,240,255,0.08)]"
-                  : "border-[#1E1E2E] bg-[#12121A]/60 hover:border-[#1E1E2E]/80 hover:bg-[#12121A]"
-              }`}
-            >
-              <p
-                className={`text-sm font-semibold ${
+          {REVENUE_STAGES.map((stage) => {
+            const revKey = stage.value.replace("-", "_").replace("pre_revenue", "pre");
+            return (
+              <button
+                key={stage.value}
+                type="button"
+                onClick={() => onChange({ revenueStage: stage.value })}
+                className={`rounded-xl border p-4 text-left transition-all duration-200 ${
                   data.revenueStage === stage.value
-                    ? "text-[#00F0FF]"
-                    : "text-[#F8FAFC]"
+                    ? "border-[#00F0FF]/60 bg-[#00F0FF]/10 shadow-[0_0_20px_rgba(0,240,255,0.08)]"
+                    : "border-[#1E1E2E] bg-[#12121A]/60 hover:border-[#1E1E2E]/80 hover:bg-[#12121A]"
                 }`}
               >
-                {stage.label}
-              </p>
-              <p className="mt-0.5 text-xs text-[#94A3B8]">
-                {stage.description}
-              </p>
-            </button>
-          ))}
+                <p
+                  className={`text-sm font-semibold ${
+                    data.revenueStage === stage.value
+                      ? "text-[#00F0FF]"
+                      : "text-[#F8FAFC]"
+                  }`}
+                >
+                  {t("onboarding.rev_" + revKey, lang)}
+                </p>
+                <p className="mt-0.5 text-xs text-[#94A3B8]">
+                  {t("onboarding.rev_" + revKey + "_desc", lang)}
+                </p>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -375,9 +378,11 @@ function StepYourBusiness({
 function StepYourGoals({
   data,
   onChange,
+  lang,
 }: {
   data: OnboardingData;
   onChange: (patch: Partial<OnboardingData>) => void;
+  lang: Language;
 }) {
   const toggle = (goal: string) => {
     const goals = data.goals.includes(goal)
@@ -389,9 +394,9 @@ function StepYourGoals({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#F8FAFC]">Your goals</h2>
+        <h2 className="text-2xl font-bold text-[#F8FAFC]">{t("onboarding.goals_title", lang)}</h2>
         <p className="mt-1 text-sm text-[#94A3B8]">
-          Select all that apply. We will prioritize these in your blueprint.
+          {t("onboarding.goals_desc", lang)}
         </p>
       </div>
 
@@ -428,7 +433,7 @@ function StepYourGoals({
                   selected ? "text-[#00F0FF]" : "text-[#F8FAFC]"
                 }`}
               >
-                {goal.value}
+                {t("onboarding." + goal.labelKey, lang)}
               </span>
               {selected && (
                 <Check className="ml-auto h-4 w-4 shrink-0 text-[#00F0FF]" />
@@ -444,18 +449,20 @@ function StepYourGoals({
 function StepYourBottleneck({
   data,
   onChange,
+  lang,
 }: {
   data: OnboardingData;
   onChange: (patch: Partial<OnboardingData>) => void;
+  lang: Language;
 }) {
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-[#F8FAFC]">
-          Your biggest bottleneck
+          {t("onboarding.bottleneck_title", lang)}
         </h2>
         <p className="mt-1 text-sm text-[#94A3B8]">
-          What is the single biggest thing holding you back right now?
+          {t("onboarding.bottleneck_desc", lang)}
         </p>
       </div>
 
@@ -492,7 +499,7 @@ function StepYourBottleneck({
                   selected ? "text-[#8B5CF6]" : "text-[#F8FAFC]"
                 }`}
               >
-                {bn.value}
+                {t("onboarding." + bn.labelKey, lang)}
               </span>
               {selected && (
                 <Check className="ml-auto h-4 w-4 shrink-0 text-[#8B5CF6]" />
@@ -513,6 +520,7 @@ function StepBlueprint({
   progress,
   onSave,
   saving,
+  lang,
 }: {
   data: OnboardingData;
   blueprint: Blueprint | null;
@@ -521,6 +529,7 @@ function StepBlueprint({
   progress: number;
   onSave: () => void;
   saving: boolean;
+  lang: Language;
 }) {
 
   if (loading) {
@@ -539,7 +548,7 @@ function StepBlueprint({
         </div>
 
         <h2 className="mb-2 text-xl font-bold text-[#F8FAFC]">
-          Generating your Founder Blueprint
+          {t("onboarding.generating", lang)}
         </h2>
 
         <motion.p
@@ -579,17 +588,17 @@ function StepBlueprint({
           <Check className="h-7 w-7 text-[#10B981]" />
         </div>
         <h2 className="text-2xl font-bold text-[#F8FAFC]">
-          Your Founder Blueprint is ready!
+          {t("onboarding.blueprint_ready", lang)}
         </h2>
         <p className="mt-1 text-sm text-[#94A3B8]">
-          Here is your personalized strategy, {data.fullName || "Founder"}.
+          {t("onboarding.blueprint_personal", lang) + ", " + (data.fullName || "Founder")}
         </p>
       </div>
 
       {/* Niche Suggestions */}
       <BlueprintCard
         icon={Lightbulb}
-        title="Niche Suggestions"
+        title={t("onboarding.card_niche", lang)}
         color="cyan"
       >
         <ul className="space-y-2">
@@ -605,7 +614,7 @@ function StepBlueprint({
       {/* Business Model */}
       <BlueprintCard
         icon={Briefcase}
-        title="Business Model"
+        title={t("onboarding.card_model", lang)}
         color="purple"
       >
         <p className="text-sm leading-relaxed text-[#94A3B8]">
@@ -616,7 +625,7 @@ function StepBlueprint({
       {/* Positioning */}
       <BlueprintCard
         icon={MapPin}
-        title="Positioning Statement"
+        title={t("onboarding.card_positioning", lang)}
         color="cyan"
       >
         <p className="text-sm italic leading-relaxed text-[#F8FAFC]">
@@ -627,7 +636,7 @@ function StepBlueprint({
       {/* Offer Ideas */}
       <BlueprintCard
         icon={Package}
-        title="Offer Ideas"
+        title={t("onboarding.card_offers", lang)}
         color="purple"
       >
         <ul className="space-y-2">
@@ -643,7 +652,7 @@ function StepBlueprint({
       {/* Audience Strategy */}
       <BlueprintCard
         icon={Users}
-        title="Audience Strategy"
+        title={t("onboarding.card_audience", lang)}
         color="cyan"
       >
         <p className="text-sm leading-relaxed text-[#94A3B8]">
@@ -654,7 +663,7 @@ function StepBlueprint({
       {/* Funnel Recommendations */}
       <BlueprintCard
         icon={MessageSquare}
-        title="Funnel Recommendation"
+        title={t("onboarding.card_funnel", lang)}
         color="purple"
       >
         <p className="text-sm leading-relaxed text-[#94A3B8]">
@@ -665,7 +674,7 @@ function StepBlueprint({
       {/* Next Steps */}
       <BlueprintCard
         icon={Rocket}
-        title="Your Next 3 Action Steps"
+        title={t("onboarding.card_next_steps", lang)}
         color="green"
       >
         <ol className="space-y-3">
@@ -691,12 +700,12 @@ function StepBlueprint({
           {saving ? (
             <>
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0A0A0F]/30 border-t-[#0A0A0F]" />
-              Saving your blueprint...
+              {t("onboarding.saving_blueprint", lang)}
             </>
           ) : (
             <>
               <LayoutDashboard className="h-4 w-4" />
-              Go to Dashboard
+              {t("onboarding.go_dashboard", lang)}
               <ArrowRight className="h-4 w-4" />
             </>
           )}
@@ -764,6 +773,7 @@ function BlueprintCard({
 
 export default function OnboardingPage() {
   const { user, loading: userLoading } = useUser();
+  const { language: lang } = useLanguage();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [data, setData] = useState<OnboardingData>({
@@ -780,9 +790,18 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [blueprint, setBlueprint] = useState<Blueprint | null>(null);
   const [blueprintLoading, setBlueprintLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
+  const loadingMessages = getLoadingMessages(lang);
+  const [loadingMessage, setLoadingMessage] = useState(loadingMessages[0]);
   const [progress, setProgress] = useState(0);
   const [saving, setSaving] = useState(false);
+
+  const STEPS = [
+    { label: t("onboarding.step_who", lang), icon: STEP_ICONS[0] },
+    { label: t("onboarding.step_business", lang), icon: STEP_ICONS[1] },
+    { label: t("onboarding.step_goals", lang), icon: STEP_ICONS[2] },
+    { label: t("onboarding.step_bottleneck", lang), icon: STEP_ICONS[3] },
+    { label: t("onboarding.step_blueprint", lang), icon: STEP_ICONS[4] },
+  ];
 
   // Pre-fill name from auth
   useEffect(() => {
@@ -816,15 +835,16 @@ export default function OnboardingPage() {
 
   // Generate blueprint
   const generateBlueprint = useCallback(async () => {
+    const msgs = getLoadingMessages(lang);
     setBlueprintLoading(true);
     setProgress(0);
-    setLoadingMessage(LOADING_MESSAGES[0]);
+    setLoadingMessage(msgs[0]);
 
     // Cycle through loading messages
     let msgIndex = 0;
     const msgInterval = setInterval(() => {
-      msgIndex = Math.min(msgIndex + 1, LOADING_MESSAGES.length - 1);
-      setLoadingMessage(LOADING_MESSAGES[msgIndex]);
+      msgIndex = Math.min(msgIndex + 1, msgs.length - 1);
+      setLoadingMessage(msgs[msgIndex]);
     }, 2500);
 
     // Animate progress
@@ -853,7 +873,7 @@ export default function OnboardingPage() {
       clearInterval(progInterval);
       setBlueprintLoading(false);
     }
-  }, [data]);
+  }, [data, lang]);
 
   const saveOnboarding = useCallback(async () => {
     setSaving(true);
@@ -989,16 +1009,16 @@ export default function OnboardingPage() {
             transition={{ duration: 0.3, ease: "easeInOut" }}
           >
             {step === 0 && (
-              <StepWhoAreYou data={data} onChange={onChange} />
+              <StepWhoAreYou data={data} onChange={onChange} lang={lang} />
             )}
             {step === 1 && (
-              <StepYourBusiness data={data} onChange={onChange} />
+              <StepYourBusiness data={data} onChange={onChange} lang={lang} />
             )}
             {step === 2 && (
-              <StepYourGoals data={data} onChange={onChange} />
+              <StepYourGoals data={data} onChange={onChange} lang={lang} />
             )}
             {step === 3 && (
-              <StepYourBottleneck data={data} onChange={onChange} />
+              <StepYourBottleneck data={data} onChange={onChange} lang={lang} />
             )}
             {step === 4 && (
               <StepBlueprint
@@ -1009,6 +1029,7 @@ export default function OnboardingPage() {
                 progress={progress}
                 onSave={saveOnboarding}
                 saving={saving}
+                lang={lang}
               />
             )}
           </motion.div>
@@ -1025,7 +1046,7 @@ export default function OnboardingPage() {
               className="flex items-center gap-1.5 rounded-lg border border-[#1E1E2E] bg-[#12121A] px-5 py-2.5 text-sm font-medium text-[#94A3B8] transition-colors hover:border-[#00F0FF]/20 hover:text-[#F8FAFC]"
             >
               <ChevronLeft className="h-4 w-4" />
-              Back
+              {t("onboarding.btn_back", lang)}
             </button>
           ) : (
             <div />
@@ -1037,7 +1058,7 @@ export default function OnboardingPage() {
             disabled={!canProceed()}
             className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] px-6 py-2.5 text-sm font-semibold text-[#0A0A0F] transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {step === 3 ? "Generate Blueprint" : "Next"}
+            {step === 3 ? t("onboarding.btn_generate", lang) : t("onboarding.btn_next", lang)}
             {step === 3 ? (
               <Sparkles className="h-4 w-4" />
             ) : (
@@ -1056,7 +1077,7 @@ export default function OnboardingPage() {
             className="flex items-center gap-1.5 rounded-lg border border-[#1E1E2E] bg-[#12121A] px-5 py-2.5 text-sm font-medium text-[#94A3B8] transition-colors hover:border-[#00F0FF]/20 hover:text-[#F8FAFC]"
           >
             <ChevronLeft className="h-4 w-4" />
-            Back
+            {t("onboarding.btn_back", lang)}
           </button>
         </div>
       )}

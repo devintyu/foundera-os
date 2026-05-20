@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/hooks/useUser";
+import { useLanguage } from "@/lib/i18n/use-language";
 import {
   LayoutDashboard,
   Search,
@@ -17,30 +18,33 @@ import {
   Zap,
   Shield,
 } from "lucide-react";
+import { t } from "@/lib/i18n/language-detector";
+import type { Language } from "@/lib/i18n/language-detector";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/market", label: "Market Intelligence", icon: Search },
-  { href: "/offers", label: "Offer Architect", icon: Package },
-  { href: "/audience", label: "Audience Intelligence", icon: Users },
-  { href: "/funnels", label: "Funnel Architect", icon: Filter },
-  { href: "/copy", label: "AI Copywriter", icon: PenTool },
-  { href: "/strategy", label: "Strategy Advisor", icon: Sparkles },
-  { href: "/history", label: "AI History", icon: Clock },
-  { href: "/settings", label: "Settings", icon: Settings },
-  { href: "/billing", label: "Billing", icon: CreditCard },
+const navItemDefs = [
+  { href: "/dashboard", labelKey: "dashboard.title", icon: LayoutDashboard },
+  { href: "/market", labelKey: "market.title", icon: Search },
+  { href: "/offers", labelKey: "offers.title", icon: Package },
+  { href: "/audience", labelKey: "audience.title", icon: Users },
+  { href: "/funnels", labelKey: "funnels.title", icon: Filter },
+  { href: "/copy", labelKey: "copy.title", icon: PenTool },
+  { href: "/strategy", labelKey: "strategy.title", icon: Sparkles },
+  { href: "/history", labelKey: "history.title", icon: Clock },
+  { href: "/settings", labelKey: "settings.title", icon: Settings },
+  { href: "/billing", labelKey: "billing.title", icon: CreditCard },
 ];
 
-const PLAN_LABELS: Record<string, string> = {
-  starter: "Starter",
-  pro: "Pro",
-  business: "Business",
-  elite: "Elite",
+const PLAN_LABELS: Record<string, Record<Language, string>> = {
+  starter: { en: "Starter", zh: "入门" },
+  pro: { en: "Pro", zh: "专业" },
+  business: { en: "Business", zh: "商业" },
+  elite: { en: "Elite", zh: "精英" },
 };
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, profile } = useUser();
+  const { language } = useLanguage();
 
   const displayName =
     profile?.full_name ||
@@ -52,7 +56,9 @@ export default function Sidebar() {
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const planLabel = PLAN_LABELS[profile?.plan || "starter"] || "Starter";
+  const planKey = profile?.plan || "starter";
+  const planLabel =
+    PLAN_LABELS[planKey]?.[language] || PLAN_LABELS.starter[language];
 
   return (
     <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[260px] flex-col border-r border-[#1E1E2E] bg-[#12121A] lg:flex">
@@ -62,14 +68,17 @@ export default function Sidebar() {
           <Zap className="h-4 w-4 text-[#00F0FF]" />
           <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[#00F0FF] shadow-[0_0_8px_rgba(0,240,255,0.6)]" />
         </div>
-        <span className="text-lg font-bold tracking-tight text-[#F8FAFC]">
-          FOUNDERA <span className="text-[#00F0FF]">OS</span>
-        </span>
+        <div>
+          <span className="text-lg font-bold tracking-tight text-[#F8FAFC]">
+            FOUNDERA <span className="text-[#00F0FF]">OS</span>
+          </span>
+          <p className="text-[10px] text-[#94A3B8]">{t("subtitle", language)}</p>
+        </div>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        {navItems.map((item) => {
+        {navItemDefs.map((item) => {
           const isActive =
             pathname === item.href || pathname?.startsWith(item.href + "/");
           const Icon = item.icon;
@@ -91,7 +100,7 @@ export default function Sidebar() {
                     : "text-[#94A3B8] group-hover:text-[#F8FAFC]"
                 }`}
               />
-              {item.label}
+              {t(item.labelKey, language)}
             </Link>
           );
         })}
@@ -115,7 +124,7 @@ export default function Sidebar() {
                   : "text-[#94A3B8] group-hover:text-[#F8FAFC]"
               }`}
             />
-            Admin Panel
+            {t("admin.title", language)}
           </Link>
         </div>
       )}
@@ -131,7 +140,7 @@ export default function Sidebar() {
               {displayName}
             </p>
             <span className="inline-flex items-center rounded-full bg-[#1E1E2E] px-2 py-0.5 text-[10px] font-medium text-[#94A3B8]">
-              {planLabel} Plan
+              {planLabel} {t("plan_suffix", language)}
             </span>
           </div>
         </div>
@@ -140,7 +149,7 @@ export default function Sidebar() {
             href="/billing"
             className="mt-3 flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] px-4 py-2 text-sm font-semibold text-[#0A0A0F] transition-opacity hover:opacity-90"
           >
-            Upgrade
+            {t("upgrade", language)}
           </Link>
         )}
       </div>

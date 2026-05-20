@@ -12,73 +12,16 @@ import {
   ArrowRight,
   CheckCircle,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/use-language";
+import { t } from "@/lib/i18n/language-detector";
 
-const features = [
-  {
-    icon: Search,
-    title: "Market Intelligence",
-    description:
-      "AI-powered market research, competitor analysis, and opportunity scoring in minutes — not weeks.",
-  },
-  {
-    icon: Package,
-    title: "Offer Architect",
-    description:
-      "Build irresistible offers with AI positioning, pricing psychology, and conversion-optimized structure.",
-  },
-  {
-    icon: Users,
-    title: "Audience Intelligence",
-    description:
-      "Deep persona building — pain points, desires, objections, and emotional triggers mapped by AI.",
-  },
-  {
-    icon: Brain,
-    title: "Funnel Architect",
-    description:
-      "AI-designed sales funnels — traffic strategy, conversion optimization, and metrics benchmarks.",
-  },
-  {
-    icon: BarChart3,
-    title: "AI Copywriter",
-    description:
-      "Generate high-converting headlines, hooks, body copy, and CTAs for any channel — instantly.",
-  },
-  {
-    icon: Brain,
-    title: "Strategy Advisor",
-    description:
-      "Live Opus-level strategy sessions — diagnosis, bottleneck detection, and 90-day growth roadmaps.",
-  },
-];
-
-const plans = [
-  {
-    name: "Starter",
-    price: "$29",
-    features: ["50 AI calls/month", "Market research", "Offer builder", "Audience personas"],
-  },
-  {
-    name: "Pro",
-    price: "$79",
-    popular: true,
-    features: [
-      "500 AI calls/month",
-      "10 Opus strategy sessions",
-      "All agents unlocked",
-      "Priority support",
-    ],
-  },
-  {
-    name: "Business",
-    price: "$199",
-    features: [
-      "2,000 AI calls/month",
-      "50 Opus strategy sessions",
-      "Team collaboration",
-      "Custom prompts",
-    ],
-  },
+const FEATURE_KEYS = [
+  { icon: Search, titleKey: "feat_market_title", descKey: "feat_market_desc" },
+  { icon: Package, titleKey: "feat_offer_title", descKey: "feat_offer_desc" },
+  { icon: Users, titleKey: "feat_audience_title", descKey: "feat_audience_desc" },
+  { icon: Brain, titleKey: "feat_funnel_title", descKey: "feat_funnel_desc" },
+  { icon: BarChart3, titleKey: "feat_copy_title", descKey: "feat_copy_desc" },
+  { icon: Brain, titleKey: "feat_strategy_title", descKey: "feat_strategy_desc" },
 ];
 
 const fadeUp = {
@@ -87,6 +30,27 @@ const fadeUp = {
 };
 
 export default function LandingPage() {
+  const { language: lang } = useLanguage();
+
+  const plans = [
+    {
+      name: t("landing.plan_starter", lang),
+      price: "$29",
+      features: [t("landing.feat_50_calls", lang), t("landing.feat_market", lang), t("landing.feat_offer", lang), t("landing.feat_persona", lang)],
+    },
+    {
+      name: t("landing.plan_pro", lang),
+      price: "$79",
+      popular: true,
+      features: [t("landing.feat_500_calls", lang), t("landing.feat_10_opus", lang), t("landing.feat_all_agents", lang), t("landing.feat_priority", lang)],
+    },
+    {
+      name: t("landing.plan_business", lang),
+      price: "$199",
+      features: [t("landing.feat_2000_calls", lang), t("landing.feat_50_opus", lang), t("landing.feat_team", lang), t("landing.feat_custom", lang)],
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-[#0A0A0F] text-[#F8FAFC]">
       {/* Nav */}
@@ -106,13 +70,13 @@ export default function LandingPage() {
               href="/login"
               className="text-sm font-medium text-[#94A3B8] transition-colors hover:text-[#F8FAFC]"
             >
-              Log in
+              {t("landing.nav_login", lang)}
             </Link>
             <Link
               href="/signup"
               className="rounded-lg bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] px-5 py-2 text-sm font-semibold text-[#0A0A0F] transition-opacity hover:opacity-90"
             >
-              Start Free
+              {t("landing.nav_start_free", lang)}
             </Link>
           </div>
         </div>
@@ -135,7 +99,7 @@ export default function LandingPage() {
           >
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#00F0FF]/20 bg-[#00F0FF]/5 px-4 py-1.5 text-sm font-medium text-[#00F0FF]">
               <Zap className="h-3.5 w-3.5" />
-              AI Founder Operating System
+              {t("landing.badge", lang)}
             </div>
           </motion.div>
 
@@ -146,13 +110,13 @@ export default function LandingPage() {
             variants={fadeUp}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            One person can now
+            {t("landing.hero_line1", lang)}
             <br />
             <span className="bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] bg-clip-text text-transparent">
-              possess the power
+              {t("landing.hero_line2", lang)}
             </span>
             <br />
-            of a company.
+            {t("landing.hero_line3", lang)}
           </motion.h1>
 
           <motion.p
@@ -162,8 +126,7 @@ export default function LandingPage() {
             variants={fadeUp}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Your AI command center — business strategist, market analyst, offer
-            architect, and founder mentor. All in one platform.
+            {t("landing.hero_desc", lang)}
           </motion.p>
 
           <motion.div
@@ -177,14 +140,14 @@ export default function LandingPage() {
               href="/signup"
               className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] px-8 py-3.5 text-base font-semibold text-[#0A0A0F] transition-all hover:shadow-[0_0_32px_rgba(0,240,255,0.3)]"
             >
-              Start Building Free
+              {t("landing.hero_cta", lang)}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               href="#features"
               className="rounded-xl border border-[#1E1E2E] px-8 py-3.5 text-base font-medium text-[#94A3B8] transition-colors hover:border-[#00F0FF]/30 hover:text-[#F8FAFC]"
             >
-              See How It Works
+              {t("landing.hero_secondary", lang)}
             </Link>
           </motion.div>
         </div>
@@ -195,23 +158,22 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-16 text-center">
             <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-              Your AI{" "}
+              {t("landing.features_title_prefix", lang)}
               <span className="bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] bg-clip-text text-transparent">
-                Workforce
+                {t("landing.features_title_highlight", lang)}
               </span>
             </h2>
             <p className="mx-auto max-w-xl text-[#94A3B8]">
-              Six AI systems working together to help you build, launch, and
-              scale your business.
+              {t("landing.features_desc", lang)}
             </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, i) => {
+            {FEATURE_KEYS.map((feature, i) => {
               const Icon = feature.icon;
               return (
                 <motion.div
-                  key={feature.title}
+                  key={feature.titleKey}
                   className="glass-card group rounded-2xl p-8 transition-all duration-300 hover:border-[#00F0FF]/20 hover:shadow-[0_0_32px_rgba(0,240,255,0.06)]"
                   initial="hidden"
                   whileInView="visible"
@@ -222,9 +184,9 @@ export default function LandingPage() {
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#00F0FF]/10 to-[#8B5CF6]/10">
                     <Icon className="h-6 w-6 text-[#00F0FF]" />
                   </div>
-                  <h3 className="mb-2 text-xl font-semibold">{feature.title}</h3>
+                  <h3 className="mb-2 text-xl font-semibold">{t(`landing.${feature.titleKey}`, lang)}</h3>
                   <p className="leading-relaxed text-[#94A3B8]">
-                    {feature.description}
+                    {t(`landing.${feature.descKey}`, lang)}
                   </p>
                 </motion.div>
               );
@@ -237,25 +199,25 @@ export default function LandingPage() {
       <section className="border-y border-[#1E1E2E] py-32">
         <div className="mx-auto max-w-5xl px-6">
           <h2 className="mb-16 text-center text-3xl font-bold md:text-4xl">
-            Up and running in{" "}
-            <span className="text-[#00F0FF]">5 minutes</span>
+            {t("landing.how_title_prefix", lang)}
+            <span className="text-[#00F0FF]">{t("landing.how_title_highlight", lang)}</span>
           </h2>
           <div className="grid gap-12 md:grid-cols-3">
             {[
               {
                 step: "01",
-                title: "Onboard",
-                desc: "Answer 5 quick questions about your business, stage, and goals.",
+                title: t("landing.step1_title", lang),
+                desc: t("landing.step1_desc", lang),
               },
               {
                 step: "02",
-                title: "Blueprint",
-                desc: "AI generates your Founder Blueprint — niche, positioning, offer ideas, and action plan.",
+                title: t("landing.step2_title", lang),
+                desc: t("landing.step2_desc", lang),
               },
               {
                 step: "03",
-                title: "Execute",
-                desc: "Use your AI workforce to research markets, craft offers, and build your business.",
+                title: t("landing.step3_title", lang),
+                desc: t("landing.step3_desc", lang),
               },
             ].map((item) => (
               <div key={item.step} className="text-center">
@@ -276,13 +238,13 @@ export default function LandingPage() {
       <section className="py-32">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="mb-4 text-center text-3xl font-bold md:text-4xl">
-            Simple{" "}
+            {t("landing.pricing_title", lang)}
             <span className="bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] bg-clip-text text-transparent">
-              pricing
+              {t("landing.pricing_highlight", lang)}
             </span>
           </h2>
           <p className="mx-auto mb-16 max-w-xl text-center text-[#94A3B8]">
-            Start free. Upgrade when your business demands it.
+            {t("landing.pricing_desc", lang)}
           </p>
 
           <div className="grid gap-6 md:grid-cols-3">
@@ -297,13 +259,13 @@ export default function LandingPage() {
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] px-4 py-1 text-xs font-bold text-[#0A0A0F]">
-                    MOST POPULAR
+                    {t("landing.most_popular", lang)}
                   </div>
                 )}
                 <h3 className="mb-1 text-lg font-semibold">{plan.name}</h3>
                 <div className="mb-6">
                   <span className="text-4xl font-bold">{plan.price}</span>
-                  <span className="text-[#94A3B8]">/mo</span>
+                  <span className="text-[#94A3B8]">{t("landing.per_month", lang)}</span>
                 </div>
                 <ul className="mb-8 space-y-3">
                   {plan.features.map((f) => (
@@ -321,7 +283,7 @@ export default function LandingPage() {
                       : "border border-[#1E1E2E] text-[#F8FAFC] hover:border-[#00F0FF]/30"
                   }`}
                 >
-                  Get Started
+                  {t("landing.get_started", lang)}
                 </Link>
               </div>
             ))}
@@ -338,17 +300,16 @@ export default function LandingPage() {
             </div>
           </div>
           <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-            Ready to build your empire?
+            {t("landing.cta_title", lang)}
           </h2>
           <p className="mb-8 text-lg text-[#94A3B8]">
-            Join founders who are using AI to operate like a Fortune 500 company
-            — as a team of one.
+            {t("landing.cta_desc", lang)}
           </p>
           <Link
             href="/signup"
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] px-10 py-4 text-lg font-semibold text-[#0A0A0F] transition-all hover:shadow-[0_0_40px_rgba(0,240,255,0.3)]"
           >
-            Start Free Today
+            {t("landing.cta_button", lang)}
             <ArrowRight className="h-5 w-5" />
           </Link>
         </div>
@@ -362,7 +323,7 @@ export default function LandingPage() {
             <span className="text-sm font-semibold">FOUNDERA OS</span>
           </div>
           <p className="text-xs text-[#94A3B8]">
-            &copy; 2026 Foundera OS. All rights reserved.
+            {t("landing.footer_copyright", lang)}
           </p>
         </div>
       </footer>

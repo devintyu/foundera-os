@@ -12,7 +12,8 @@ export async function saveAIResult(
   agentType: string,
   title: string,
   result: unknown,
-  input: unknown
+  input: unknown,
+  detectedLanguage?: string
 ) {
   try {
     await getSupabaseAdmin().from("ai_conversations").insert({
@@ -21,6 +22,7 @@ export async function saveAIResult(
       title,
       messages: [{ role: "assistant", content: JSON.stringify(result), timestamp: new Date().toISOString() }],
       context: input,
+      ...(detectedLanguage ? { detected_language: detectedLanguage } : {}),
     });
   } catch {
     // Best-effort save

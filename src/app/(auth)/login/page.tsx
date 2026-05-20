@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Zap, Mail, Lock, ArrowRight } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/use-language";
+import { t } from "@/lib/i18n/language-detector";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,6 +15,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+  const { language: lang } = useLanguage();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,9 +58,9 @@ export default function LoginPage() {
 
       {/* Card */}
       <div className="glass-card rounded-2xl p-8">
-        <h1 className="mb-2 text-center text-2xl font-bold">Welcome back</h1>
+        <h1 className="mb-2 text-center text-2xl font-bold">{t("auth.welcome_back", lang)}</h1>
         <p className="mb-8 text-center text-sm text-[#94A3B8]">
-          Sign in to your command center
+          {t("auth.sign_in_subtitle", lang)}
         </p>
 
         {/* Google OAuth */}
@@ -84,12 +87,12 @@ export default function LoginPage() {
               fill="#EA4335"
             />
           </svg>
-          Continue with Google
+          {t("auth.continue_google", lang)}
         </button>
 
         <div className="mb-6 flex items-center gap-4">
           <div className="h-px flex-1 bg-[#1E1E2E]" />
-          <span className="text-xs text-[#94A3B8]">or</span>
+          <span className="text-xs text-[#94A3B8]">{t("auth.or", lang)}</span>
           <div className="h-px flex-1 bg-[#1E1E2E]" />
         </div>
 
@@ -103,7 +106,7 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-[#94A3B8]">
-              Email
+              {t("auth.email", lang)}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]" />
@@ -121,7 +124,7 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-[#94A3B8]">
-              Password
+              {t("auth.password", lang)}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]" />
@@ -142,16 +145,16 @@ export default function LoginPage() {
             disabled={loading}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] py-3 text-sm font-semibold text-[#0A0A0F] transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? t("auth.signing_in", lang) : t("auth.sign_in", lang)}
             {!loading && <ArrowRight className="h-4 w-4" />}
           </button>
         </form>
       </div>
 
       <p className="text-center text-sm text-[#94A3B8]">
-        Don&apos;t have an account?{" "}
+        {t("auth.no_account", lang)}{" "}
         <Link href="/signup" className="font-medium text-[#00F0FF] hover:underline">
-          Sign up free
+          {t("auth.sign_up_free", lang)}
         </Link>
       </p>
     </div>

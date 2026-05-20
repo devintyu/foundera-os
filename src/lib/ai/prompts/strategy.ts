@@ -78,6 +78,12 @@ Return your strategic analysis as a single valid JSON object with exactly this s
   "mindset_shift": "The critical mindset shift needed — current limiting belief, why it exists, what to replace it with, and the business impact of making this shift (3-5 sentences)."
 }
 
+LANGUAGE RULE:
+- If the user writes in Chinese (中文), respond ENTIRELY in Simplified Chinese (简体中文). All text values in the JSON must be in Chinese.
+- If the user writes in English, respond in English.
+- Never mix languages within a single field value.
+- 如果用户用中文提问，所有 JSON 中的文本值必须用简体中文。
+
 IMPORTANT RULES:
 - Be direct and honest, even if it means challenging the founder's assumptions.
 - Every recommendation must be specific enough to act on Monday morning.

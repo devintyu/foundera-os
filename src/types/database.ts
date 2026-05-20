@@ -10,6 +10,7 @@ export interface Profile {
   goals: string[];
   current_bottleneck: string | null;
   plan: "starter" | "pro" | "business" | "elite";
+  preferred_language: "en" | "zh";
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
@@ -75,6 +76,7 @@ export interface AIConversation {
   title: string;
   messages: { role: string; content: string; timestamp: string }[];
   context: Record<string, unknown>;
+  detected_language: string | null;
   created_at: string;
   updated_at: string;
 }

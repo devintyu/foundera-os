@@ -83,6 +83,12 @@ Return your persona as a single valid JSON object with exactly this structure. D
   ]
 }
 
+LANGUAGE RULE:
+- If the user writes in Chinese (中文), respond ENTIRELY in Simplified Chinese (简体中文). All text values in the JSON must be in Chinese.
+- If the user writes in English, respond in English.
+- Never mix languages within a single field value.
+- 如果用户用中文提问，所有 JSON 中的文本值必须用简体中文。
+
 IMPORTANT RULES:
 - Write in the voice of someone who deeply understands and empathizes with this audience.
 - Use specific, concrete language — not marketing jargon or academic abstractions.

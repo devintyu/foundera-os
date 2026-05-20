@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useUser } from "@/hooks/useUser";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useLanguage } from "@/lib/i18n/use-language";
+import { t } from "@/lib/i18n/language-detector";
 import {
   LayoutDashboard,
   Zap,
@@ -17,71 +19,29 @@ import {
   Crown,
 } from "lucide-react";
 
-const quickActions = [
-  {
-    href: "/market",
-    title: "Market Intelligence",
-    description: "Research markets, competitors, and trends with AI.",
-    icon: Search,
-  },
-  {
-    href: "/offers",
-    title: "Offer Architect",
-    description: "Build irresistible offers with AI-powered positioning.",
-    icon: Package,
-  },
-  {
-    href: "/audience",
-    title: "Audience Intelligence",
-    description: "Discover and understand your ideal customer profiles.",
-    icon: Users,
-  },
-  {
-    href: "/funnels",
-    title: "Funnel Architect",
-    description: "Design AI-powered sales funnels that convert.",
-    icon: Filter,
-  },
-  {
-    href: "/strategy",
-    title: "Strategy Advisor",
-    description: "Get Opus-level strategic advice in a live session.",
-    icon: Sparkles,
-  },
-  {
-    href: "/copy",
-    title: "AI Copywriter",
-    description: "Generate headlines, hooks, and body copy instantly.",
-    icon: PenTool,
-  },
+const quickActionDefs = [
+  { href: "/market", titleKey: "actions.market_title", descKey: "actions.market_desc", icon: Search },
+  { href: "/offers", titleKey: "actions.offers_title", descKey: "actions.offers_desc", icon: Package },
+  { href: "/audience", titleKey: "actions.audience_title", descKey: "actions.audience_desc", icon: Users },
+  { href: "/funnels", titleKey: "actions.funnels_title", descKey: "actions.funnels_desc", icon: Filter },
+  { href: "/strategy", titleKey: "actions.strategy_title", descKey: "actions.strategy_desc", icon: Sparkles },
+  { href: "/copy", titleKey: "actions.copy_title", descKey: "actions.copy_desc", icon: PenTool },
 ];
-
-const STAGE_LABELS: Record<string, string> = {
-  explorer: "Explorer",
-  builder: "Builder",
-  operator: "Operator",
-  scaler: "Scaler",
-  owner: "Owner",
-};
-
-const PLAN_LABELS: Record<string, string> = {
-  starter: "Starter",
-  pro: "Pro",
-  business: "Business",
-  elite: "Elite",
-};
 
 export default function DashboardPage() {
   const { user, profile, loading: userLoading } = useUser();
   const { plan, aiCallsUsed, limits, loading: subLoading } = useSubscription();
+  const { language: lang } = useLanguage();
 
   const displayName =
     profile?.full_name ||
     user?.user_metadata?.full_name ||
     "Founder";
   const firstName = displayName.split(" ")[0];
-  const stage = STAGE_LABELS[profile?.founder_stage || "explorer"] || "Explorer";
-  const planLabel = PLAN_LABELS[plan] || "Starter";
+  const stage = t(`stages.${profile?.founder_stage || "explorer"}`, lang);
+  const planLabel = lang === "zh"
+    ? ({ starter: "入门", pro: "专业", business: "商业", elite: "精英" }[plan] || "入门")
+    : ({ starter: "Starter", pro: "Pro", business: "Business", elite: "Elite" }[plan] || "Starter");
   const aiCallsLimit = limits.aiCalls === Infinity ? "∞" : limits.aiCalls;
   const aiUsagePercent =
     limits.aiCalls === Infinity
@@ -92,14 +52,14 @@ export default function DashboardPage() {
 
   const stats = [
     {
-      label: "Founder Stage",
+      label: t("dashboard.founder_stage", lang),
       value: stage,
       icon: LayoutDashboard,
       color: "from-[#00F0FF]/10 to-[#8B5CF6]/10",
       iconColor: "text-[#00F0FF]",
     },
     {
-      label: "AI Credits",
+      label: t("dashboard.ai_credits", lang),
       value: `${aiCallsUsed}/${aiCallsLimit}`,
       icon: Zap,
       color: "from-[#8B5CF6]/10 to-[#00F0FF]/10",
@@ -107,14 +67,14 @@ export default function DashboardPage() {
       bar: aiUsagePercent,
     },
     {
-      label: "Current Plan",
+      label: t("dashboard.current_plan", lang),
       value: planLabel,
       icon: Crown,
       color: "from-[#F59E0B]/10 to-[#EF4444]/10",
       iconColor: "text-[#F59E0B]",
     },
     {
-      label: "Tools Available",
+      label: t("dashboard.tools_available", lang),
       value: "6",
       icon: FileText,
       color: "from-[#10B981]/10 to-[#00F0FF]/10",
@@ -128,11 +88,13 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
           <span className="bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] bg-clip-text text-transparent">
-            {isLoading ? "Welcome back" : `Welcome back, ${firstName}`}
+            {isLoading
+              ? t("dashboard.welcome", lang)
+              : `${t("dashboard.welcome", lang)}, ${firstName}`}
           </span>
         </h1>
         <p className="mt-1 text-[#94A3B8]">
-          Your AI command center — {planLabel} plan
+          {t("dashboard.command_center", lang)} — {planLabel} {t("plan_suffix", lang)}
         </p>
       </div>
 
@@ -185,10 +147,10 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm font-semibold text-[#F8FAFC]">
-                Complete your Founder Blueprint
+                {t("dashboard.complete_blueprint", lang)}
               </p>
               <p className="text-xs text-[#94A3B8]">
-                Get AI-generated strategy personalized to your business
+                {t("dashboard.blueprint_desc", lang)}
               </p>
             </div>
           </div>
@@ -199,10 +161,10 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-[#F8FAFC]">
-          AI Tools
+          {t("dashboard.ai_tools", lang)}
         </h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {quickActions.map((action) => {
+          {quickActionDefs.map((action) => {
             const Icon = action.icon;
             return (
               <Link
@@ -214,13 +176,13 @@ export default function DashboardPage() {
                   <Icon className="h-5 w-5 text-[#00F0FF]" />
                 </div>
                 <h3 className="text-sm font-semibold text-[#F8FAFC]">
-                  {action.title}
+                  {t(action.titleKey, lang)}
                 </h3>
                 <p className="mt-1 text-xs leading-relaxed text-[#94A3B8]">
-                  {action.description}
+                  {t(action.descKey, lang)}
                 </p>
                 <div className="mt-3 flex items-center gap-1 text-xs font-medium text-[#00F0FF] opacity-0 transition-opacity group-hover:opacity-100">
-                  Get started <ArrowRight className="h-3 w-3" />
+                  {t("get_started", lang)} <ArrowRight className="h-3 w-3" />
                 </div>
               </Link>
             );

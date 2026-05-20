@@ -22,7 +22,8 @@ export async function getUserTrackAndSave(
   agentType: string,
   title: string,
   result: unknown,
-  input: unknown
+  input: unknown,
+  detectedLanguage?: string
 ) {
   try {
     const supabase = await createClient();
@@ -32,7 +33,7 @@ export async function getUserTrackAndSave(
     if (user) {
       await Promise.all([
         trackAIUsage(user.id, tokensUsed),
-        saveAIResult(user.id, agentType, title, result, input),
+        saveAIResult(user.id, agentType, title, result, input, detectedLanguage),
       ]);
     }
     return user?.id ?? null;

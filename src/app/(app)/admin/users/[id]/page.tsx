@@ -12,6 +12,8 @@ import {
   MessageSquare,
   Save,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/use-language";
+import { t } from "@/lib/i18n/language-detector";
 
 interface UserDetail {
   profile: {
@@ -54,6 +56,7 @@ export default function AdminUserDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { language: lang } = useLanguage();
   const [data, setData] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -69,7 +72,7 @@ export default function AdminUserDetailPage({
       try {
         const res = await fetch(`/api/admin/users/${id}`);
         if (!res.ok) {
-          setError("Failed to load user.");
+          setError("failed_user");
           return;
         }
         const d: UserDetail = await res.json();
@@ -78,7 +81,7 @@ export default function AdminUserDetailPage({
         setEditPlan(d.profile.plan);
         setEditStage(d.profile.founder_stage);
       } catch {
-        setError("Failed to load user.");
+        setError("failed_user");
       } finally {
         setLoading(false);
       }
@@ -98,13 +101,13 @@ export default function AdminUserDetailPage({
       if (res.ok) {
         const updated = await res.json();
         setData((prev) => prev ? { ...prev, profile: updated.profile } : prev);
-        setSaveMsg("Saved!");
+        setSaveMsg("saved");
         setTimeout(() => setSaveMsg(""), 2000);
       } else {
-        setSaveMsg("Save failed");
+        setSaveMsg("save_failed");
       }
     } catch {
-      setSaveMsg("Save failed");
+      setSaveMsg("save_failed");
     } finally {
       setSaving(false);
     }
@@ -122,7 +125,7 @@ export default function AdminUserDetailPage({
     return (
       <div className="flex flex-col items-center justify-center py-32">
         <Shield className="h-12 w-12 text-red-500" />
-        <p className="mt-4 text-lg font-semibold text-[#F8FAFC]">{error}</p>
+        <p className="mt-4 text-lg font-semibold text-[#F8FAFC]">{t(`admin.${error}`, lang)}</p>
       </div>
     );
   }
@@ -147,9 +150,9 @@ export default function AdminUserDetailPage({
             {initials}
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#F8FAFC]">{profile.full_name || "Unnamed"}</h1>
+            <h1 className="text-xl font-bold text-[#F8FAFC]">{profile.full_name || t("admin.unnamed", lang)}</h1>
             <p className="text-xs text-[#94A3B8]">
-              Joined {new Date(profile.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+              {t("admin.joined_prefix", lang)} {new Date(profile.created_at).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { month: "long", day: "numeric", year: "numeric" })}
             </p>
           </div>
         </div>
@@ -159,45 +162,45 @@ export default function AdminUserDetailPage({
         {/* Profile Edit */}
         <div className="rounded-xl border border-[#1E1E2E] bg-[#12121A]/80 p-6 lg:col-span-1">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#F8FAFC]">
-            <User className="h-4 w-4 text-[#00F0FF]" /> Profile
+            <User className="h-4 w-4 text-[#00F0FF]" /> {t("admin.profile", lang)}
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs font-medium text-[#94A3B8]">Role</label>
+              <label className="mb-1 block text-xs font-medium text-[#94A3B8]">{t("admin.role_label", lang)}</label>
               <select
                 value={editRole}
                 onChange={(e) => setEditRole(e.target.value)}
                 className="w-full rounded-lg border border-[#1E1E2E] bg-[#0A0A0F] px-3 py-2 text-sm text-[#F8FAFC] outline-none focus:border-[#00F0FF]/50"
               >
-                <option value="founder">Founder</option>
-                <option value="admin">Admin</option>
+                <option value="founder">{t("admin.founder_opt", lang)}</option>
+                <option value="admin">{t("admin.admin_opt", lang)}</option>
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-[#94A3B8]">Plan</label>
+              <label className="mb-1 block text-xs font-medium text-[#94A3B8]">{t("admin.plan_label", lang)}</label>
               <select
                 value={editPlan}
                 onChange={(e) => setEditPlan(e.target.value)}
                 className="w-full rounded-lg border border-[#1E1E2E] bg-[#0A0A0F] px-3 py-2 text-sm text-[#F8FAFC] outline-none focus:border-[#00F0FF]/50"
               >
-                <option value="starter">Starter ($29)</option>
-                <option value="pro">Pro ($79)</option>
-                <option value="business">Business ($199)</option>
-                <option value="elite">Elite ($499)</option>
+                <option value="starter">{t("admin.starter_price", lang)}</option>
+                <option value="pro">{t("admin.pro_price", lang)}</option>
+                <option value="business">{t("admin.business_price", lang)}</option>
+                <option value="elite">{t("admin.elite_price", lang)}</option>
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-[#94A3B8]">Founder Stage</label>
+              <label className="mb-1 block text-xs font-medium text-[#94A3B8]">{t("admin.founder_stage", lang)}</label>
               <select
                 value={editStage}
                 onChange={(e) => setEditStage(e.target.value)}
                 className="w-full rounded-lg border border-[#1E1E2E] bg-[#0A0A0F] px-3 py-2 text-sm text-[#F8FAFC] outline-none focus:border-[#00F0FF]/50"
               >
-                <option value="explorer">Explorer</option>
-                <option value="builder">Builder</option>
-                <option value="operator">Operator</option>
-                <option value="scaler">Scaler</option>
-                <option value="owner">Owner</option>
+                <option value="explorer">{t("admin.explorer", lang)}</option>
+                <option value="builder">{t("admin.builder", lang)}</option>
+                <option value="operator">{t("admin.operator", lang)}</option>
+                <option value="scaler">{t("admin.scaler", lang)}</option>
+                <option value="owner">{t("admin.owner", lang)}</option>
               </select>
             </div>
             <button
@@ -206,11 +209,11 @@ export default function AdminUserDetailPage({
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#00F0FF] to-[#8B5CF6] px-4 py-2 text-sm font-semibold text-[#0A0A0F] transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t("admin.saving", lang) : t("admin.save_changes", lang)}
             </button>
             {saveMsg && (
-              <p className={`text-center text-xs ${saveMsg === "Saved!" ? "text-[#10B981]" : "text-[#EF4444]"}`}>
-                {saveMsg}
+              <p className={`text-center text-xs ${saveMsg === "saved" ? "text-[#10B981]" : "text-[#EF4444]"}`}>
+                {t(`admin.${saveMsg}`, lang)}
               </p>
             )}
           </div>
@@ -218,26 +221,26 @@ export default function AdminUserDetailPage({
           {/* Quick Info */}
           <div className="mt-6 space-y-2 border-t border-[#1E1E2E] pt-4">
             <div className="flex justify-between text-xs">
-              <span className="text-[#94A3B8]">Industry</span>
+              <span className="text-[#94A3B8]">{t("admin.industry", lang)}</span>
               <span className="text-[#F8FAFC]">{profile.industry || "—"}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-[#94A3B8]">Experience</span>
+              <span className="text-[#94A3B8]">{t("admin.experience", lang)}</span>
               <span className="capitalize text-[#F8FAFC]">{profile.experience_level}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-[#94A3B8]">Revenue Stage</span>
+              <span className="text-[#94A3B8]">{t("admin.revenue_stage", lang)}</span>
               <span className="capitalize text-[#F8FAFC]">{profile.revenue_stage.replace("_", " ")}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-[#94A3B8]">Onboarded</span>
+              <span className="text-[#94A3B8]">{t("admin.onboarded", lang)}</span>
               <span className={profile.onboarding_completed ? "text-[#10B981]" : "text-[#F59E0B]"}>
-                {profile.onboarding_completed ? "Yes" : "No"}
+                {profile.onboarding_completed ? t("admin.yes", lang) : t("admin.no", lang)}
               </span>
             </div>
             {profile.goals && profile.goals.length > 0 && (
               <div className="pt-2">
-                <p className="mb-1 text-xs text-[#94A3B8]">Goals</p>
+                <p className="mb-1 text-xs text-[#94A3B8]">{t("admin.goals", lang)}</p>
                 <div className="flex flex-wrap gap-1">
                   {profile.goals.map((g, i) => (
                     <span key={i} className="rounded-full bg-[#1E1E2E] px-2 py-0.5 text-[10px] text-[#94A3B8]">
@@ -255,42 +258,42 @@ export default function AdminUserDetailPage({
           {/* Subscription */}
           <div className="rounded-xl border border-[#1E1E2E] bg-[#12121A]/80 p-6">
             <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#F8FAFC]">
-              <Crown className="h-4 w-4 text-[#F59E0B]" /> Subscription
+              <Crown className="h-4 w-4 text-[#F59E0B]" /> {t("admin.subscription", lang)}
             </h3>
             {subscription ? (
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <div>
-                  <p className="text-xs text-[#94A3B8]">Plan</p>
+                  <p className="text-xs text-[#94A3B8]">{t("admin.plan_label", lang)}</p>
                   <p className="mt-1 text-sm font-medium capitalize text-[#F8FAFC]">{subscription.plan}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#94A3B8]">Status</p>
+                  <p className="text-xs text-[#94A3B8]">{t("admin.status", lang)}</p>
                   <p className={`mt-1 text-sm font-medium ${subscription.status === "active" ? "text-[#10B981]" : "text-[#EF4444]"}`}>
                     {subscription.status.replace("_", " ")}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#94A3B8]">Period Start</p>
+                  <p className="text-xs text-[#94A3B8]">{t("admin.period_start", lang)}</p>
                   <p className="mt-1 text-sm text-[#F8FAFC]">
-                    {new Date(subscription.current_period_start).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    {new Date(subscription.current_period_start).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { month: "short", day: "numeric" })}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#94A3B8]">Period End</p>
+                  <p className="text-xs text-[#94A3B8]">{t("admin.period_end", lang)}</p>
                   <p className="mt-1 text-sm text-[#F8FAFC]">
-                    {new Date(subscription.current_period_end).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    {new Date(subscription.current_period_end).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { month: "short", day: "numeric" })}
                   </p>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-[#94A3B8]">No active subscription (free tier)</p>
+              <p className="text-sm text-[#94A3B8]">{t("admin.no_subscription", lang)}</p>
             )}
           </div>
 
           {/* Usage History */}
           <div className="rounded-xl border border-[#1E1E2E] bg-[#12121A]/80 p-6">
             <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#F8FAFC]">
-              <Zap className="h-4 w-4 text-[#8B5CF6]" /> Usage History
+              <Zap className="h-4 w-4 text-[#8B5CF6]" /> {t("admin.usage_history", lang)}
             </h3>
             {usageHistory.length > 0 ? (
               <div className="space-y-2">
@@ -301,26 +304,26 @@ export default function AdminUserDetailPage({
                       {u.month}
                     </span>
                     <div className="flex gap-6 text-xs text-[#94A3B8]">
-                      <span>{u.ai_calls_count} calls</span>
+                      <span>{u.ai_calls_count} {t("admin.calls", lang)}</span>
                       <span>
                         {u.tokens_used > 1000
                           ? `${(u.tokens_used / 1000).toFixed(1)}K`
                           : u.tokens_used}{" "}
-                        tokens
+                        {t("admin.tokens_suffix", lang)}
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-[#94A3B8]">No usage recorded</p>
+              <p className="text-sm text-[#94A3B8]">{t("admin.no_usage", lang)}</p>
             )}
           </div>
 
           {/* Recent AI Conversations */}
           <div className="rounded-xl border border-[#1E1E2E] bg-[#12121A]/80 p-6">
             <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#F8FAFC]">
-              <MessageSquare className="h-4 w-4 text-[#00F0FF]" /> Recent AI Conversations
+              <MessageSquare className="h-4 w-4 text-[#00F0FF]" /> {t("admin.recent_conversations", lang)}
             </h3>
             {recentConversations.length > 0 ? (
               <div className="space-y-2">
@@ -331,13 +334,13 @@ export default function AdminUserDetailPage({
                       <p className="text-xs text-[#94A3B8]">{AGENT_LABELS[c.agent_type] || c.agent_type}</p>
                     </div>
                     <span className="text-xs text-[#94A3B8]">
-                      {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {new Date(c.created_at).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", { month: "short", day: "numeric" })}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-[#94A3B8]">No conversations yet</p>
+              <p className="text-sm text-[#94A3B8]">{t("admin.no_conversations", lang)}</p>
             )}
           </div>
         </div>

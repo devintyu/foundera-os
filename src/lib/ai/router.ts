@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
+import { detectLanguage, type Language } from "@/lib/i18n/language-detector";
 
 let _openai: OpenAI | null = null;
 let _anthropic: Anthropic | null = null;
@@ -43,17 +44,26 @@ const MODEL_MAP: Record<AgentType, AIModel> = {
   roadmap_generator: "claude-opus",
 };
 
+function getLanguageInstruction(lang: Language): string {
+  if (lang === "zh") {
+    return "\n\n**CRITICAL LANGUAGE RULE: The user is communicating in Chinese. You MUST respond ENTIRELY in Simplified Chinese (简体中文). Do not use English in your response unless it is a proper noun, brand name, or technical term with no standard Chinese equivalent.**";
+  }
+  return "\n\n**Respond in English.**";
+}
+
 interface AIRequest {
   agentType: AgentType;
   systemPrompt: string;
   userMessage: string;
   maxTokens?: number;
+  preferredLanguage?: Language;
 }
 
 interface AIResponse {
   content: string;
   model: AIModel;
   tokensUsed: number;
+  detectedLanguage: Language;
 }
 
 export async function routeAI({
@@ -61,14 +71,18 @@ export async function routeAI({
   systemPrompt,
   userMessage,
   maxTokens = 4096,
+  preferredLanguage,
 }: AIRequest): Promise<AIResponse> {
   const model = MODEL_MAP[agentType];
+  const detectedLanguage = preferredLanguage || detectLanguage(userMessage);
+  const langInstruction = getLanguageInstruction(detectedLanguage);
+  const enrichedPrompt = systemPrompt + langInstruction;
 
   if (model === "gpt-4o-mini") {
     const res = await getOpenAI().chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: enrichedPrompt },
         { role: "user", content: userMessage },
       ],
       max_tokens: maxTokens,
@@ -77,6 +91,7 @@ export async function routeAI({
       content: res.choices[0].message.content ?? "",
       model,
       tokensUsed: res.usage?.total_tokens ?? 0,
+      detectedLanguage,
     };
   }
 
@@ -85,7 +100,7 @@ export async function routeAI({
   const res = await getAnthropic().messages.create({
     model: claudeModel,
     max_tokens: maxTokens,
-    system: systemPrompt,
+    system: enrichedPrompt,
     messages: [{ role: "user", content: userMessage }],
   });
   const textBlock = res.content.find((b) => b.type === "text");
@@ -93,6 +108,7 @@ export async function routeAI({
     content: textBlock?.text ?? "",
     model,
     tokensUsed: res.usage.input_tokens + res.usage.output_tokens,
+    detectedLanguage,
   };
 }
 

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Shield, Mail, Lock, ArrowRight } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/use-language";
+import { t } from "@/lib/i18n/language-detector";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -12,6 +14,7 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+  const { language: lang } = useLanguage();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,7 +38,7 @@ export default function AdminLoginPage() {
 
     if (profile?.role !== "admin") {
       await supabase.auth.signOut();
-      setError("Access denied. This account does not have admin privileges.");
+      setError(t("auth.access_denied", lang));
       setLoading(false);
       return;
     }
@@ -55,17 +58,17 @@ export default function AdminLoginPage() {
           <span className="text-xl font-bold tracking-tight">
             FOUNDERA <span className="text-[#F59E0B]">ADMIN</span>
           </span>
-          <p className="mt-1 text-xs text-[#94A3B8]">System Administration</p>
+          <p className="mt-1 text-xs text-[#94A3B8]">{t("auth.admin_subtitle", lang)}</p>
         </div>
       </div>
 
       {/* Card */}
       <div className="glass-card rounded-2xl p-8">
         <h1 className="mb-2 text-center text-2xl font-bold text-[#F8FAFC]">
-          Admin Access
+          {t("auth.admin_access", lang)}
         </h1>
         <p className="mb-8 text-center text-sm text-[#94A3B8]">
-          Sign in with your admin credentials
+          {t("auth.admin_credentials", lang)}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -80,7 +83,7 @@ export default function AdminLoginPage() {
               htmlFor="admin-email"
               className="mb-1.5 block text-sm font-medium text-[#94A3B8]"
             >
-              Email
+              {t("auth.email", lang)}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]" />
@@ -101,7 +104,7 @@ export default function AdminLoginPage() {
               htmlFor="admin-password"
               className="mb-1.5 block text-sm font-medium text-[#94A3B8]"
             >
-              Password
+              {t("auth.password", lang)}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]" />
@@ -123,10 +126,10 @@ export default function AdminLoginPage() {
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#F59E0B] to-[#EF4444] py-3 text-sm font-semibold text-[#0A0A0F] transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {loading ? (
-              "Verifying..."
+              t("auth.verifying", lang)
             ) : (
               <>
-                Access Admin Panel <ArrowRight className="h-4 w-4" />
+                {t("auth.access_admin", lang)} <ArrowRight className="h-4 w-4" />
               </>
             )}
           </button>
@@ -134,7 +137,7 @@ export default function AdminLoginPage() {
       </div>
 
       <p className="text-center text-xs text-[#94A3B8]">
-        Unauthorized access attempts are logged.
+        {t("auth.unauthorized_notice", lang)}
       </p>
     </div>
   );
