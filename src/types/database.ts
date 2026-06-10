@@ -101,3 +101,59 @@ export interface UsageTracking {
   tokens_used: number;
   updated_at: string;
 }
+
+export interface Plan {
+  id: string;
+  name: string;
+  monthly_price_usd: number;
+  monthly_price_myr: number;
+  monthly_ai_credits: number;
+  monthly_gemini_tokens: number;
+  monthly_claude_tokens: number;
+  max_agents: number;
+  max_workspaces: number;
+  allow_claude_strategy: boolean;
+  allow_deep_thinking: boolean;
+  created_at: string;
+}
+
+export interface UserAIBalance {
+  id: string;
+  user_id: string;
+  plan_id: string;
+  remaining_ai_credits: number;
+  remaining_gemini_tokens: number;
+  remaining_claude_tokens: number;
+  remaining_topup_credits: number;
+  ai_cost_mode: "economy" | "balanced" | "premium";
+  monthly_reset_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AIUsageLog {
+  id: string;
+  user_id: string;
+  agent_id: string | null;
+  task_type: string;
+  model_used: string;
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+  estimated_cost_usd: number;
+  credit_deducted: number;
+  source: string;
+  created_at: string;
+}
+
+export interface TopupTransaction {
+  id: string;
+  user_id: string;
+  stripe_payment_id: string | null;
+  topup_package_name: string;
+  amount_usd: number;
+  amount_myr: number;
+  ai_credits_added: number;
+  status: "pending" | "completed" | "failed" | "refunded";
+  created_at: string;
+}

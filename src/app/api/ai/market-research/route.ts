@@ -1,26 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { routeAI } from "@/lib/ai/router";
+import { createClient } from "@/lib/supabase/server";
+import { routeAI, InsufficientCreditsError } from "@/lib/ai/router";
 import { getMarketResearchPrompt } from "@/lib/ai/prompts/market-research";
-import { getUserTrackAndSave } from "@/lib/ai/with-tracking";
-import { checkAILimits } from "@/lib/ai/check-limits";
+import { saveAIResult } from "@/lib/ai/save-result";
 
 export async function POST(req: NextRequest) {
   try {
-    const { allowed, remaining } = await checkAILimits();
-    if (!allowed) {
-      return NextResponse.json(
-        { error: "AI credit limit reached. Upgrade your plan for more.", remaining },
-        { status: 429 }
-      );
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { industry, niche, questions, language } = await req.json();
 
     if (!industry || !niche) {
-      return NextResponse.json(
-        { error: "Industry and niche are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Industry and niche are required" }, { status: 400 });
     }
 
     const userMessage = `Analyze this market opportunity:
@@ -34,25 +29,19 @@ Provide comprehensive market intelligence including overview, opportunities, com
       agentType: "market_researcher",
       systemPrompt: getMarketResearchPrompt({ industry, niche, questions }),
       userMessage,
-      maxTokens: 4096,
       preferredLanguage: language,
+      userId: user.id,
     });
 
     const parsed = JSON.parse(aiResponse.content);
-    await getUserTrackAndSave(
-      aiResponse.tokensUsed,
-      "market_researcher",
-      `${industry} — ${niche}`,
-      parsed,
-      { industry, niche, questions },
-      aiResponse.detectedLanguage
-    );
+    await saveAIResult(user.id, "market_researcher", `${industry} — ${niche}`, parsed, { industry, niche, questions }, aiResponse.detectedLanguage);
+
     return NextResponse.json(parsed);
   } catch (error) {
+    if (error instanceof InsufficientCreditsError) {
+      return NextResponse.json({ error: error.message, type: "insufficient_credits" }, { status: 429 });
+    }
     console.error("Market research error:", error);
-    return NextResponse.json(
-      { error: "Failed to process market research request" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to process market research request" }, { status: 500 });
   }
 }

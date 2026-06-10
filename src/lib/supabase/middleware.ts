@@ -1,63 +1,49 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from 'next/server'
 
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key || !url.startsWith("http")) {
-    return supabaseResponse;
+  // 检查 cookie 判断是否登录（不调用任何外部服务）
+  const token = request.cookies.get('sb-vsnxctnhpgrcquavyfge-auth-token')?.value
+  const hasSession = !!token
+
+  // 需要登录的路由
+  const protectedRoutes = [
+    '/dashboard',
+    '/onboarding',
+    '/market',
+    '/offers',
+    '/audience',
+    '/funnels',
+    '/strategy',
+    '/copy',
+    '/history',
+    '/settings',
+    '/billing',
+    '/credits',
+    '/workforce',
+  ]
+
+  const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
+  const isAuthPage = pathname === '/login' || pathname === '/signup'
+
+  // 未登录访问受保护页面 → 跳转 login
+  if (!hasSession && isProtected) {
+    const loginUrl = new URL('/login', request.url)
+    return NextResponse.redirect(loginUrl)
   }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const path = request.nextUrl.pathname;
-  // Redirect unauthenticated users away from app routes
-  if (
-    (!user && path.startsWith("/dashboard")) ||
-    (!user && path.startsWith("/onboarding")) ||
-    (!user && path.startsWith("/market")) ||
-    (!user && path.startsWith("/offers")) ||
-    (!user && path.startsWith("/audience")) ||
-    (!user && path.startsWith("/funnels")) ||
-    (!user && path.startsWith("/strategy")) ||
-    (!user && path.startsWith("/copy")) ||
-    (!user && path.startsWith("/history")) ||
-    (!user && path.startsWith("/settings")) ||
-    (!user && path.startsWith("/billing")) ||
-    (!user && path.startsWith("/admin") && path !== "/admin/login")
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+  // 已登录访问 login/signup → 跳转 dashboard
+  if (hasSession && isAuthPage) {
+    const dashboardUrl = new URL('/dashboard', request.url)
+    return NextResponse.redirect(dashboardUrl)
   }
-  // Redirect authenticated users away from auth pages
-  if (user && (path === "/login" || path === "/signup")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
-  return supabaseResponse;
+
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }

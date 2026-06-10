@@ -29,6 +29,7 @@ const navItemDefs = [
   { href: "/funnels", labelKey: "funnels.title", icon: Filter },
   { href: "/copy", labelKey: "copy.title", icon: PenTool },
   { href: "/strategy", labelKey: "strategy.title", icon: Sparkles },
+  { href: "/credits", labelKey: "credits.title", icon: Zap },
   { href: "/history", labelKey: "history.title", icon: Clock },
   { href: "/settings", labelKey: "settings.title", icon: Settings },
   { href: "/billing", labelKey: "billing.title", icon: CreditCard },

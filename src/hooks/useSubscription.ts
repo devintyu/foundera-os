@@ -13,22 +13,26 @@ interface Subscription {
   current_period_end: string | null;
 }
 
-interface UsageTracking {
-  ai_calls_count: number;
-  tokens_used: number;
-  month: string;
+interface AIBalance {
+  remaining_ai_credits: number;
+  remaining_topup_credits: number;
+  remaining_gemini_tokens: number;
+  remaining_claude_tokens: number;
+  ai_cost_mode: string;
+  plan_id: string;
+  monthly_reset_date: string;
 }
 
-const PLAN_LIMITS = {
-  starter: { aiCalls: 50, opusCalls: 0 },
-  pro: { aiCalls: 500, opusCalls: 10 },
-  business: { aiCalls: 2000, opusCalls: 50 },
-  elite: { aiCalls: Infinity, opusCalls: Infinity },
+const PLAN_CREDITS = {
+  starter: { monthlyCredits: 1000, allowClaudeStrategy: false, allowDeepThinking: false },
+  pro: { monthlyCredits: 4000, allowClaudeStrategy: true, allowDeepThinking: false },
+  business: { monthlyCredits: 12000, allowClaudeStrategy: true, allowDeepThinking: true },
+  elite: { monthlyCredits: 50000, allowClaudeStrategy: true, allowDeepThinking: true },
 } as const;
 
 export function useSubscription() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [usage, setUsage] = useState<UsageTracking | null>(null);
+  const [aiBalance, setAIBalance] = useState<AIBalance | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,7 +47,7 @@ export function useSubscription() {
         return;
       }
 
-      const [subRes, usageRes] = await Promise.all([
+      const [subRes, balanceRes] = await Promise.all([
         supabase
           .from("subscriptions")
           .select("*")
@@ -51,35 +55,45 @@ export function useSubscription() {
           .eq("status", "active")
           .single(),
         supabase
-          .from("usage_tracking")
+          .from("user_ai_balances")
           .select("*")
           .eq("user_id", user.id)
-          .eq(
-            "month",
-            new Date().toISOString().slice(0, 7)
-          )
           .single(),
       ]);
 
       if (subRes.data) setSubscription(subRes.data);
-      if (usageRes.data) setUsage(usageRes.data);
+      if (balanceRes.data) setAIBalance(balanceRes.data);
       setLoading(false);
     }
 
     fetchData();
   }, []);
 
-  const plan = (subscription?.plan ?? "starter") as keyof typeof PLAN_LIMITS;
-  const limits = PLAN_LIMITS[plan];
+  const plan = (subscription?.plan ?? aiBalance?.plan_id ?? "starter") as keyof typeof PLAN_CREDITS;
+  const planConfig = PLAN_CREDITS[plan] ?? PLAN_CREDITS.starter;
+  const totalCredits = (aiBalance?.remaining_ai_credits ?? 0) + (aiBalance?.remaining_topup_credits ?? 0);
+  const monthlyCredits = planConfig.monthlyCredits;
+  const usedCredits = monthlyCredits - (aiBalance?.remaining_ai_credits ?? monthlyCredits);
 
   return {
     subscription,
-    usage,
+    aiBalance,
     loading,
     plan,
-    limits,
-    aiCallsUsed: usage?.ai_calls_count ?? 0,
-    aiCallsRemaining: Math.max(0, limits.aiCalls - (usage?.ai_calls_count ?? 0)),
-    isAtLimit: (usage?.ai_calls_count ?? 0) >= limits.aiCalls,
+    costMode: (aiBalance?.ai_cost_mode ?? "balanced") as "economy" | "balanced" | "premium",
+    totalCredits,
+    monthlyCredits,
+    usedCredits,
+    topupCredits: aiBalance?.remaining_topup_credits ?? 0,
+    renewalDate: aiBalance?.monthly_reset_date ?? null,
+    allowClaudeStrategy: planConfig.allowClaudeStrategy,
+    allowDeepThinking: planConfig.allowDeepThinking,
+    isAtLimit: totalCredits <= 0,
+    usagePercent: monthlyCredits > 0 ? Math.round((usedCredits / monthlyCredits) * 100) : 0,
+    // Legacy compatibility
+    limits: { aiCalls: monthlyCredits },
+    aiCallsUsed: usedCredits,
+    aiCallsRemaining: totalCredits,
+    usage: null,
   };
 }

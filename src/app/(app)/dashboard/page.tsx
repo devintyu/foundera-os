@@ -30,7 +30,7 @@ const quickActionDefs = [
 
 export default function DashboardPage() {
   const { user, profile, loading: userLoading } = useUser();
-  const { plan, aiCallsUsed, limits, loading: subLoading } = useSubscription();
+  const { plan, totalCredits, monthlyCredits, usedCredits, usagePercent, loading: subLoading } = useSubscription();
   const { language: lang } = useLanguage();
 
   const displayName =
@@ -40,13 +40,10 @@ export default function DashboardPage() {
   const firstName = displayName.split(" ")[0];
   const stage = t(`stages.${profile?.founder_stage || "explorer"}`, lang);
   const planLabel = lang === "zh"
-    ? ({ starter: "入门", pro: "专业", business: "商业", elite: "精英" }[plan] || "入门")
-    : ({ starter: "Starter", pro: "Pro", business: "Business", elite: "Elite" }[plan] || "Starter");
-  const aiCallsLimit = limits.aiCalls === Infinity ? "∞" : limits.aiCalls;
-  const aiUsagePercent =
-    limits.aiCalls === Infinity
-      ? 5
-      : Math.round((aiCallsUsed / limits.aiCalls) * 100);
+    ? ({ starter: "入门", pro: "专业", business: "代理", elite: "企业" }[plan] || "入门")
+    : ({ starter: "Starter", pro: "Pro", business: "Agency", elite: "Enterprise" }[plan] || "Starter");
+  const aiCreditsDisplay = `${totalCredits.toLocaleString()}`;
+  const aiUsagePercent = usagePercent;
 
   const isLoading = userLoading || subLoading;
 
@@ -60,7 +57,7 @@ export default function DashboardPage() {
     },
     {
       label: t("dashboard.ai_credits", lang),
-      value: `${aiCallsUsed}/${aiCallsLimit}`,
+      value: aiCreditsDisplay,
       icon: Zap,
       color: "from-[#8B5CF6]/10 to-[#00F0FF]/10",
       iconColor: "text-[#8B5CF6]",

@@ -191,6 +191,9 @@ const translations = {
       prompt_validate: "Validate my idea",
       prompt_validate_text: "I have a business idea I want to validate before investing time and money. The idea is: [describe your idea]. Who would buy this, what would they pay, and how do I test it fast?",
     },
+    credits: {
+      title: "AI Credits",
+    },
     history: {
       title: "AI History",
       subtitle: "All your past AI-generated results in one place",
@@ -754,6 +757,9 @@ const translations = {
       prompt_90day_text: "我需要一个聚焦的 90 天行动计划。我的业务是[描述业务]，收入是[收入水平]，我的首要目标是[你的目标]。我应该优先做什么？",
       prompt_validate: "验证我的想法",
       prompt_validate_text: "我有一个商业想法，想在投入时间和金钱之前验证。想法是：[描述你的想法]。谁会买，他们会付多少钱，如何快速测试？",
+    },
+    credits: {
+      title: "AI 积分",
     },
     history: {
       title: "AI 历史记录",

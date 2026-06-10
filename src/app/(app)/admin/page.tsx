@@ -121,6 +121,12 @@ export default function AdminDashboardPage() {
             <Users className="h-4 w-4" /> {t("admin.users_link", lang)}
           </Link>
           <Link
+            href="/admin/ai-usage"
+            className="flex items-center gap-2 rounded-lg bg-[#1E1E2E] px-4 py-2 text-sm font-medium text-[#F8FAFC] transition-colors hover:bg-[#1E1E2E]/80"
+          >
+            <Zap className="h-4 w-4" /> AI Usage
+          </Link>
+          <Link
             href="/admin/analytics"
             className="flex items-center gap-2 rounded-lg bg-[#1E1E2E] px-4 py-2 text-sm font-medium text-[#F8FAFC] transition-colors hover:bg-[#1E1E2E]/80"
           >

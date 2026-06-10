@@ -1,17 +1,9 @@
 import { NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
-import { getUserAndTrack } from "@/lib/ai/with-tracking";
-import { checkAILimits } from "@/lib/ai/check-limits";
+import { createClient } from "@/lib/supabase/server";
+import { routeAIRequest, InsufficientCreditsError } from "@/lib/ai/model-router";
 import { detectLanguage } from "@/lib/i18n/language-detector";
 
-let _anthropic: Anthropic | null = null;
-function getAnthropic() {
-  if (!_anthropic)
-    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  return _anthropic;
-}
-
-const SYSTEM_PROMPT = `You are the Foundera OS Strategy Advisor — an Opus-level AI strategist with the depth of a McKinsey senior partner, the founder empathy of a Y Combinator group partner, and the operational clarity of a COO who has scaled multiple companies from $0 to $10M+.
+const SYSTEM_PROMPT = `You are the Foundera OS Strategy Advisor — a senior AI strategist with the depth of a McKinsey senior partner, the founder empathy of a Y Combinator group partner, and the operational clarity of a COO who has scaled multiple companies from $0 to $10M+.
 
 You are having a live strategy conversation with a founder. This is not a one-shot analysis — you are their ongoing strategic partner.
 
@@ -45,12 +37,10 @@ interface ChatMessage {
 
 export async function POST(request: Request) {
   try {
-    const { allowed, remaining } = await checkAILimits();
-    if (!allowed) {
-      return NextResponse.json(
-        { error: "AI credit limit reached. Upgrade your plan for more.", remaining },
-        { status: 429 }
-      );
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { messages, context, language } = await request.json();
@@ -60,41 +50,36 @@ export async function POST(request: Request) {
       systemPrompt += `\n\nFOUNDER CONTEXT:\n- Name: ${context.name || "Unknown"}\n- Role: ${context.role || "Founder"}\n- Industry: ${context.industry || "Unknown"}\n- Stage: ${context.stage || "Unknown"}\n- Goals: ${context.goals?.join(", ") || "Not specified"}\n- Bottleneck: ${context.bottleneck || "Not specified"}`;
     }
 
-    const anthropicMessages = (messages as ChatMessage[]).map((m) => ({
-      role: m.role as "user" | "assistant",
-      content: m.content,
-    }));
-
     const uiLang = language || (() => {
       const lastUserMessage = [...messages].reverse().find((m: ChatMessage) => m.role === "user");
       return lastUserMessage ? detectLanguage(lastUserMessage.content) : "en";
     })();
 
-    if (uiLang === "zh") {
-      systemPrompt += "\n\n**CRITICAL: The user is communicating in Chinese. You MUST respond ENTIRELY in Simplified Chinese (简体中文). Do not use English unless it is a proper noun or technical term with no standard Chinese equivalent. 你必须用简体中文回复。**";
-    }
+    const conversationHistory = (messages as ChatMessage[]).slice(0, -1);
+    const lastMessage = messages[messages.length - 1];
 
-    const res = await getAnthropic().messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2048,
-      system: systemPrompt,
-      messages: anthropicMessages,
+    const result = await routeAIRequest({
+      userId: user.id,
+      taskType: "strategy",
+      systemPrompt,
+      userMessage: lastMessage.content,
+      conversationHistory,
+      preferredLanguage: uiLang,
+      maxTokensOverride: 1500,
     });
-
-    const textBlock = res.content.find((b) => b.type === "text");
-    const tokensUsed = res.usage.input_tokens + res.usage.output_tokens;
-
-    await getUserAndTrack(tokensUsed);
 
     return NextResponse.json({
-      message: textBlock?.text ?? "I couldn't generate a response. Please try again.",
-      tokensUsed,
+      message: result.content,
+      tokensUsed: result.totalTokens,
+      modelUsed: result.modelUsed,
+      creditsDeducted: result.creditsDeducted,
+      remainingCredits: result.remainingCredits,
     });
   } catch (error) {
+    if (error instanceof InsufficientCreditsError) {
+      return NextResponse.json({ error: error.message, type: "insufficient_credits" }, { status: 429 });
+    }
     console.error("Strategy chat error:", error);
-    return NextResponse.json(
-      { error: "Failed to get strategy advice" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to get strategy advice" }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
+import { addTopupCredits, updatePlanBalance } from "@/lib/ai/credits";
 import type Stripe from "stripe";
 
 function getSupabaseAdmin() {
@@ -15,33 +16,47 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get("stripe-signature");
 
   if (!signature) {
-    return NextResponse.json(
-      { error: "Missing stripe-signature header" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
   }
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("Webhook signature verification failed:", message);
-    return NextResponse.json(
-      { error: `Webhook Error: ${message}` },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: `Webhook Error: ${message}` }, { status: 400 });
   }
 
   try {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        // Handle top-up payment
+        if (session.metadata?.type === "topup") {
+          const userId = session.metadata.userId;
+          const credits = parseInt(session.metadata.topupCredits ?? "0", 10);
+          const packageId = session.metadata.topupPackageId ?? "unknown";
+
+          if (userId && credits > 0) {
+            await addTopupCredits(userId, credits);
+
+            await getSupabaseAdmin().from("topup_transactions").insert({
+              user_id: userId,
+              stripe_payment_id: session.payment_intent as string,
+              topup_package_name: packageId,
+              amount_usd: (session.amount_total ?? 0) / 100,
+              amount_myr: 0,
+              ai_credits_added: credits,
+              status: "completed",
+            });
+          }
+          break;
+        }
+
+        // Handle subscription checkout
         const userId = session.metadata?.userId;
         const planId = session.metadata?.planId;
 
@@ -73,6 +88,9 @@ export async function POST(req: NextRequest) {
           .from("profiles")
           .update({ plan: planId })
           .eq("id", userId);
+
+        // Reset AI credits for the new plan
+        await updatePlanBalance(userId, planId);
 
         break;
       }
@@ -110,6 +128,9 @@ export async function POST(req: NextRequest) {
             .from("profiles")
             .update({ plan: "starter" })
             .eq("id", sub.user_id);
+
+          // Reset to starter plan credits
+          await updatePlanBalance(sub.user_id, "starter");
         }
 
         break;
@@ -119,9 +140,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Webhook handler error:", error);
-    return NextResponse.json(
-      { error: "Webhook handler failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
   }
 }

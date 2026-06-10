@@ -1,0 +1,73 @@
+'use client'
+
+import { formatDistanceToNow } from 'date-fns'
+
+export default function UsageHistory({ logs, transactions }: any) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Usage Logs */}
+      <div className="bg-[#12121A] border border-white/10 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Recent AI Usage</h3>
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {logs?.length > 0 ? (
+            logs.map((log: any) => (
+              <div key={log.id} className="flex justify-between items-center text-sm border-b border-white/5 pb-2">
+                <div>
+                  <p className="text-gray-300 font-medium capitalize">
+                    {log.agent_type.replace('-', ' ')}
+                  </p>
+                  <p className="text-gray-500 text-xs">
+                    {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-400 text-xs">{log.total_tokens} tokens</p>
+                  <p className="text-cyan-400 font-semibold">-1 credit</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No usage yet</p>
+              <p className="text-gray-600 text-sm mt-1">Start using AI agents to see your history</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Transactions */}
+      <div className="bg-[#12121A] border border-white/10 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Top-Up History</h3>
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {transactions?.length > 0 ? (
+            transactions.map((txn: any) => (
+              <div key={txn.id} className="flex justify-between items-center text-sm border-b border-white/5 pb-2">
+                <div>
+                  <p className="text-gray-300 font-medium">+{txn.credits} Credits</p>
+                  <p className="text-gray-500 text-xs">
+                    {formatDistanceToNow(new Date(txn.created_at), { addSuffix: true })}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-green-400 font-semibold">${txn.amount}</p>
+                  <p className={`text-xs ${
+                    txn.status === 'completed' ? 'text-green-400' : 
+                    txn.status === 'pending' ? 'text-yellow-400' : 
+                    'text-red-400'
+                  }`}>
+                    {txn.status}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No transactions yet</p>
+              <p className="text-gray-600 text-sm mt-1">Top up credits to get started</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
